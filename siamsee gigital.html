@@ -27,7 +27,7 @@
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
 
-        // --- แก้ไขชื่อไฟล์เป็นภาษาอังกฤษ (1.png, 2.png...) เพื่อให้ GitHub อ่านออก ---
+        // *** สำคัญ: ต้องเปลี่ยนชื่อไฟล์ในโฟลเดอร์ GitHub ให้เป็น 1.png, 2.png ตามนี้ ***
         const FORTUNES = [
             { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง ประดุจอาทิตย์อุทัย ไร้เมฆหมอกบัง', image: '1.png' },
             { id: 2, title: 'ความสำเร็จเกิดจากมิตรสหายและคู่ครอง', detail: 'การเจรจาราบรื่น จะมีคนคอยเกื้อหนุนให้ถึงฝั่งฝัน', image: '2.png' },
@@ -117,16 +117,15 @@
                 }, 2000);
             };
 
-            // --- Helper: ดึงไฟล์ภาพ ---
+            // --- Helper: ดึงไฟล์ภาพ พร้อมป้องกัน Cache ---
             const getImageFile = async () => {
-                // เพิ่ม timestamp เพื่อป้องกัน cache เก่า
                 const response = await fetch(selectedFortune.image + '?t=' + new Date().getTime());
-                if (!response.ok) throw new Error("Image not found");
+                if (!response.ok) throw new Error("Image not found (404)");
                 const blob = await response.blob();
                 return new File([blob], `HondaMaliwan_Fortune_${selectedFortune.id}.png`, { type: 'image/png' });
             };
 
-            // --- DOWNLOAD FUNCTION (GitHub Friendly) ---
+            // --- DOWNLOAD FUNCTION (แก้ไขเวลา Timeout ให้รองรับมือถือช้า) ---
             const handleDownload = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
@@ -144,15 +143,18 @@
                     
                     saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
                     
+                    // **แก้ไขจุดสำคัญ:** เพิ่มเวลาเป็น 5 วินาที เพื่อให้มือถือโหลดเสร็จก่อนลบลิงก์ทิ้ง
                     setTimeout(() => {
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         setIsProcessing(false);
-                    }, 500); // เพิ่ม delay เล็กน้อยเพื่อให้มือถือประมวลผลทัน
+                    }, 5000); 
                 } catch (err) {
                     console.error("Download failed:", err);
                     setIsProcessing(false);
-                    alert("⚠️ ไม่พบไฟล์รูปภาพ\nกรุณาตรวจสอบว่าชื่อไฟล์ใน GitHub เป็นภาษาอังกฤษ (1.png, 2.png) หรือยังครับ");
+                    // ถ้ายังโหลดไม่ได้ (เช่นใน Line/FB) ให้เปิดรูปหน้าใหม่แทน
+                    alert("⚠️ ระบบดาวน์โหลดอัตโนมัติขัดข้อง\nกำลังเปิดรูปในหน้าต่างใหม่ ให้ท่านกดค้างที่รูปเพื่อบันทึกครับ");
+                    window.open(selectedFortune.image, '_blank');
                 }
             };
 
@@ -172,11 +174,12 @@
                         });
                         saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
                     } else {
+                        // ถ้าแชร์ไม่ได้ ให้เรียกใช้ฟังก์ชันดาวน์โหลดแทน
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
+                        setIsProcessing(false); // Reset flag เพื่อให้เรียก handleDownload ได้
                         handleDownload();
                     }
                 } catch (err) {
-                    // กรณี user กด cancle ไม่ต้อง alert
                     console.log("Share cancelled or failed:", err);
                 } finally {
                     setIsProcessing(false);
