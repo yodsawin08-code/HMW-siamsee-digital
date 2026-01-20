@@ -27,16 +27,17 @@
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
 
+        // --- แก้ไขชื่อไฟล์เป็นภาษาอังกฤษ (1.png, 2.png...) เพื่อให้ GitHub อ่านออก ---
         const FORTUNES = [
-            { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง ประดุจอาทิตย์อุทัย ไร้เมฆหมอกบัง', image: 'คำทำนายที่ 1.png' },
-            { id: 2, title: 'ความสำเร็จเกิดจากมิตรสหายและคู่ครอง', detail: 'การเจรจาราบรื่น จะมีคนคอยเกื้อหนุนให้ถึงฝั่งฝัน', image: 'คำทำนายที่ 2.png' },
-            { id: 3, title: 'เป็นปีแห่งการก้าวกระโดด', detail: 'อย่ากลัวที่จะเปลี่ยนแปลง การขยับขยายจะนำมาซึ่งโชคลาภมหาศาล', image: 'คำทำนายที่ 3.png' },
-            { id: 4, title: 'ปัญญาคือทรัพย์', detail: 'สติจะพาให้พ้นอุปสรรค การลงทุนในความรู้จะออกดอกผลเป็นเงินทอง', image: 'คำทำนายที่ 4.png' },
-            { id: 5, title: 'ชีวิตสมดุลคือลาภอันประเสริฐ', detail: 'การงานเด่น ความรักดี สุขภาพกายใจแข็งแกร่งดั่งภูผา', image: 'คำทำนายที่ 5.png' },
-            { id: 6, title: 'โชคลาภหลั่งไหลมาดั่งสายน้ำ', detail: 'มีกินมีใช้ไม่ขาดมือ สิ่งที่เคยติดขัดจะคลี่คลายในเร็ววัน', image: 'คำทำนายที่ 6.png' },
-            { id: 7, title: 'ชื่อเสียงจะปรากฏเด่นชัด', detail: 'ความดีที่ทำมาจะส่งผลให้ผู้คนยอมรับและสรรเสริญ', image: 'คำทำนายที่ 7.png' },
-            { id: 8, title: 'เลขแปดนำพาโชคไม่สิ้นสุด', detail: 'โอกาสใหม่จะวิ่งเข้าหา การเดินทางไกลจะนำมาซึ่งความสำเร็จ', image: 'คำทำนายที่ 8.png' },
-            { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง ประสบความสำเร็จอย่างมั่นคงและยั่งยืน', image: 'คำทำนายที่ 9.png' }
+            { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง ประดุจอาทิตย์อุทัย ไร้เมฆหมอกบัง', image: '1.png' },
+            { id: 2, title: 'ความสำเร็จเกิดจากมิตรสหายและคู่ครอง', detail: 'การเจรจาราบรื่น จะมีคนคอยเกื้อหนุนให้ถึงฝั่งฝัน', image: '2.png' },
+            { id: 3, title: 'เป็นปีแห่งการก้าวกระโดด', detail: 'อย่ากลัวที่จะเปลี่ยนแปลง การขยับขยายจะนำมาซึ่งโชคลาภมหาศาล', image: '3.png' },
+            { id: 4, title: 'ปัญญาคือทรัพย์', detail: 'สติจะพาให้พ้นอุปสรรค การลงทุนในความรู้จะออกดอกผลเป็นเงินทอง', image: '4.png' },
+            { id: 5, title: 'ชีวิตสมดุลคือลาภอันประเสริฐ', detail: 'การงานเด่น ความรักดี สุขภาพกายใจแข็งแกร่งดั่งภูผา', image: '5.png' },
+            { id: 6, title: 'โชคลาภหลั่งไหลมาดั่งสายน้ำ', detail: 'มีกินมีใช้ไม่ขาดมือ สิ่งที่เคยติดขัดจะคลี่คลายในเร็ววัน', image: '6.png' },
+            { id: 7, title: 'ชื่อเสียงจะปรากฏเด่นชัด', detail: 'ความดีที่ทำมาจะส่งผลให้ผู้คนยอมรับและสรรเสริญ', image: '7.png' },
+            { id: 8, title: 'เลขแปดนำพาโชคไม่สิ้นสุด', detail: 'โอกาสใหม่จะวิ่งเข้าหา การเดินทางไกลจะนำมาซึ่งความสำเร็จ', image: '8.png' },
+            { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง ประสบความสำเร็จอย่างมั่นคงและยั่งยืน', image: '9.png' }
         ];
 
         // Icons (SVG)
@@ -55,9 +56,8 @@
             const [selectedFortune, setSelectedFortune] = useState(null);
             const [aiAnalysis, setAiAnalysis] = useState("");
             const [isAnalyzing, setIsAnalyzing] = useState(false);
-            const [isProcessing, setIsProcessing] = useState(false); // สถานะการโหลด
+            const [isProcessing, setIsProcessing] = useState(false); 
             
-            // Session ID เพื่อระบุตัวตน
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
 
             const saveToGoogleSheets = (actionType, fortune, aiText) => {
@@ -117,14 +117,16 @@
                 }, 2000);
             };
 
-            // --- ฟังก์ชันเตรียมไฟล์ภาพ (ใช้ร่วมกันทั้ง Load และ Share) ---
+            // --- Helper: ดึงไฟล์ภาพ ---
             const getImageFile = async () => {
-                const response = await fetch(selectedFortune.image);
+                // เพิ่ม timestamp เพื่อป้องกัน cache เก่า
+                const response = await fetch(selectedFortune.image + '?t=' + new Date().getTime());
+                if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
                 return new File([blob], `HondaMaliwan_Fortune_${selectedFortune.id}.png`, { type: 'image/png' });
             };
 
-            // --- ฟังก์ชันดาวน์โหลดแบบ Force Download ---
+            // --- DOWNLOAD FUNCTION (GitHub Friendly) ---
             const handleDownload = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
@@ -146,16 +148,15 @@
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         setIsProcessing(false);
-                    }, 100);
+                    }, 500); // เพิ่ม delay เล็กน้อยเพื่อให้มือถือประมวลผลทัน
                 } catch (err) {
                     console.error("Download failed:", err);
                     setIsProcessing(false);
-                    alert("ขออภัย ดาวน์โหลดไม่สำเร็จ กรุณาลองใหม่");
+                    alert("⚠️ ไม่พบไฟล์รูปภาพ\nกรุณาตรวจสอบว่าชื่อไฟล์ใน GitHub เป็นภาษาอังกฤษ (1.png, 2.png) หรือยังครับ");
                 }
             };
 
-            // --- ฟังก์ชันแชร์แบบ Native (Web Share API) ---
-            // จะเรียกหน้าต่างแชร์ของระบบมือถือขึ้นมาโดยตรง (เหมือนโค้ด React ที่ให้มา)
+            // --- NATIVE SHARE FUNCTION ---
             const handleNativeShare = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
@@ -163,7 +164,6 @@
                 try {
                     const file = await getImageFile();
 
-                    // ตรวจสอบว่า Browser รองรับการแชร์ไฟล์ไหม
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             title: 'เซียมซีดิจิทัล Honda Maliwan',
@@ -172,11 +172,11 @@
                         });
                         saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
                     } else {
-                        // ถ้าแชร์ไม่ได้ (เช่น บนคอมพิวเตอร์) ให้ดาวน์โหลดแทน
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
                         handleDownload();
                     }
                 } catch (err) {
+                    // กรณี user กด cancle ไม่ต้อง alert
                     console.log("Share cancelled or failed:", err);
                 } finally {
                     setIsProcessing(false);
