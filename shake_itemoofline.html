@@ -43,7 +43,6 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
         const GEMINI_API_KEY = ""; 
         
-        // *** เพิ่มสาขา "Online" เรียบร้อยแล้ว ***
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
         const FORTUNES = [
@@ -256,7 +255,8 @@
                         
                         {step !== 'result' && (
                             <div className="text-center mb-4 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-14 mx-auto mb-2 drop-shadow-lg" />
+                                {/* ปรับขนาดโลโก้ให้ใหญ่ขึ้น */}
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-6 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                                 {debugFortuneId && (
                                     <div className="mt-2 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
@@ -285,15 +285,17 @@
 
                         {step === 'shake' && (
                             <div className="text-center flex-grow flex flex-col items-center justify-center">
+                                {/* ปรับขนาดรูปเขย่าให้ใหญ่ขึ้น */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
-                                    className={`w-40 h-auto mb-6 ${isShaking ? 'shake-animation' : ''}`} 
+                                    className={`w-64 h-auto mb-8 ${isShaking ? 'shake-animation' : ''}`} 
                                 />
+                                {/* ปรับขนาดปุ่มให้ใหญ่ขึ้น */}
                                 <button 
                                     onClick={handleShake}
                                     disabled={isShaking}
-                                    className="w-full max-w-[200px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-2xl shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                    className="w-full max-w-[280px] py-5 bg-yellow-500 text-red-900 font-bold rounded-full text-3xl shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
                                 >
                                     {isShaking ? '...' : 'เขย่าเลย!'}
                                 </button>
