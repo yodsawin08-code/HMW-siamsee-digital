@@ -65,13 +65,9 @@
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
-                    // สร้าง URL ใหม่ที่มีคำสั่ง ?openExternalBrowser=1
                     const currentUrl = new URL(window.location.href);
-                    
-                    // ป้องกันการ Loop (ถ้ามีพารามิเตอร์แล้ว ไม่ต้อง Redirect ซ้ำ)
                     if (!currentUrl.searchParams.has('openExternalBrowser')) {
                         currentUrl.searchParams.set('openExternalBrowser', '1');
-                        // สั่ง Redirect ทันที
                         window.location.replace(currentUrl.toString());
                     }
                 }
@@ -135,6 +131,20 @@
                 } finally {
                     setIsAnalyzing(false);
                 }
+            };
+
+            const handleBranchSelect = async (branch) => {
+                // *** 1. ขออนุญาต iOS Motion Sensor ทันทีที่กดปุ่มนี้ ***
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        await DeviceMotionEvent.requestPermission();
+                    } catch (e) {
+                        console.error("Motion permission error:", e);
+                    }
+                }
+
+                setSelectedBranch(branch);
+                setStep('shake'); 
             };
 
             const handleShake = () => {
@@ -224,8 +234,8 @@
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
                         
                         {step !== 'result' && (
-                            <div className="text-center mb-2 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-20 mx-auto mb-2 drop-shadow-lg" />
+                            <div className="text-center mb-4 animate-fade-in flex-shrink-0">
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                             </div>
                         )}
@@ -237,7 +247,7 @@
                                     {BRANCHES.map(branch => (
                                         <button 
                                             key={branch}
-                                            onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
+                                            onClick={() => handleBranchSelect(branch)}
                                             className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
                                         >
                                             {branch}
@@ -248,30 +258,31 @@
                         )}
 
                         {step === 'shake' && (
-                            // ใช้ flex-grow เพื่อยึดพื้นที่ว่าง และ justify-between เพื่อกระจาย
-                            <div className="text-center flex-grow flex flex-col items-center justify-between py-4">
-                                {/* Wrapper สำหรับรูปภาพ ให้ขยายเต็มที่ (flex-1) และซ่อนส่วนเกิน (overflow-hidden) */}
+                            <div className="text-center flex-grow flex flex-col items-center justify-start pt-4">
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
-                                    {/* รูปภาพ: ให้สูงเต็ม parent (h-full) แต่ไม่เกินขอบ (object-contain) */}
                                     <img 
                                         src="shake_item.png" 
                                         alt="Shake Item" 
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
-
                                 <div className="flex-shrink-0 w-full">
-                                    <p className="text-[3.5dvh] mb-4 font-bold leading-normal">
+                                    <p className="text-[3.5dvh] mb-4 font-bold leading-normal text-yellow-100">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วเขย่ามือถือ
                                     </p>
+                                    <button 
+                                        onClick={handleShake}
+                                        disabled={isShaking}
+                                        className="w-[80%] max-w-[300px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                    >
+                                        {isShaking ? '...' : 'เขย่าเลย!'}
+                                    </button>
                                 </div>
                             </div>
                         )}
 
                         {step === 'result' && selectedFortune && (
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-2">
-                                {/* Logo is hidden here because step === 'result' */}
-                                
                                 <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2">
                                      <img 
                                         src={selectedFortune.image} 
