@@ -55,13 +55,18 @@
             const [aiAnalysis, setAiAnalysis] = useState("");
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
-            const [targetFortuneId, setTargetFortuneId] = useState(null);
             const [isShaking, setIsShaking] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            // --- สร้างตัวล็อคค่า (Refs) ---
+            // ตัวแปรพวกนี้จะจำค่าได้แม่นยำกว่า State ปกติ ไม่หาย ไม่เพี้ยน
+            const targetFortuneRef = useRef(null); 
             const branchRef = useRef(""); 
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            
+            // State สำหรับโชว์หน้าจอ (UI Only)
+            const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
-            // Auto Redirect LINE
+            // 1. Auto Redirect LINE
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
@@ -73,12 +78,15 @@
                 }
             }, []);
 
-            // Check Query Params for UI Display Only
+            // 2. Lock Fortune ID from URL (ทำงานทันทีที่โหลดหน้าเว็บ)
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
+                
+                // ถ้ามีเลข 1-9 ใน URL ให้ล็อคค่าใส่ Ref ทันที
                 if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
-                    setTargetFortuneId(fortuneId);
+                    targetFortuneRef.current = fortuneId;
+                    setDebugFortuneId(fortuneId); // อัปเดต UI ให้เห็นว่าล็อคแล้ว
                 }
             }, []);
 
@@ -89,7 +97,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline", // ลงชีท Offline
+                        sheetName: "Offline", 
                         sessionId: sessionId.current,
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
@@ -128,29 +136,25 @@
 
             const handleBranchSelect = async (branch) => {
                 setSelectedBranch(branch);
-                branchRef.current = branch; // Update Ref
+                branchRef.current = branch; 
                 
-                // --- แก้ไขจุดสำคัญ: อ่านค่าจาก URL ตรงนี้เลย (ไม่รอ State) ---
-                const params = new URLSearchParams(window.location.search);
-                const urlFortuneId = parseInt(params.get('fortune'));
-
+                // --- จุดตัดสินใจสำคัญ ---
+                // ใช้ค่าจาก Ref ที่ล็อคไว้ตั้งแต่ต้น (แม่นยำ 100%)
+                const lockedFortuneId = targetFortuneRef.current;
                 let fortuneToShow = null;
-                
-                if (urlFortuneId && urlFortuneId >= 1 && urlFortuneId <= 9) {
-                    // ถ้ามีเลขใน URL ให้ใช้เลขนั้นเลย
-                    fortuneToShow = FORTUNES.find(f => f.id === urlFortuneId);
+
+                if (lockedFortuneId) {
+                    // ถ้ามีเลขล็อคไว้ ใช้เลขนั้นเลย
+                    fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
                 } else {
-                    // ถ้าไม่มี (ไม่ได้สแกน QR) ให้สุ่ม
+                    // ถ้าไม่มีเลขล็อค (คนกดเข้ามาเล่นเอง) ให้สุ่ม
                     fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                 }
 
                 if (fortuneToShow) {
                     setSelectedFortune(fortuneToShow);
                     setStep('result');
-                    
-                    // บันทึกทันทีพร้อมชื่อสาขา
                     saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
-                    
                     await fetchAiContent(fortuneToShow);
                 }
             };
@@ -240,8 +244,13 @@
                             <div className="text-center mb-6 animate-fade-in">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg">Siamsee Dragon 2026</p>
-                                {/* แสดงข้อความยืนยันเลขใบเซียมซี (ถ้ามี) */}
-                                {targetFortuneId && <p className="text-yellow-400 text-sm mt-2 font-bold">ท่านได้ใบเซียมซีที่ {targetFortuneId}</p>}
+                                
+                                {/* แสดงข้อความยืนยัน (ถ้ามีเลขล็อค) */}
+                                {debugFortuneId && (
+                                    <div className="mt-2 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-sm font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -264,7 +273,7 @@
 
                         {step === 'shake' && (
                             <div className="text-center py-10 flex flex-col items-center">
-                                {/* ถ้าเผลอเข้ามาหน้านี้โดยไม่มี QR ก็ให้เขย่าได้ */}
+                                {/* ถ้าไม่มีเลขล็อค (debugFortuneId) แสดงว่าเข้าโหมดเขย่า */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
