@@ -225,8 +225,7 @@
                         
                         {step !== 'result' && (
                             <div className="text-center mb-4 animate-fade-in flex-shrink-0">
-                                {/* ปรับขนาดโลโก้ให้ใหญ่ขึ้น */}
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-6 drop-shadow-lg" />
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                             </div>
                         )}
@@ -249,15 +248,16 @@
                         )}
 
                         {step === 'shake' && (
-                            <div className="text-center flex-grow flex flex-col items-center justify-center">
-                                {/* ปรับขนาดรูปเขย่าให้ใหญ่ขึ้น */}
+                            // ใช้ justify-start และ pt-4 เพื่อดันเนื้อหาขึ้นไปด้านบน
+                            <div className="text-center flex-grow flex flex-col items-center justify-start pt-4">
+                                {/* ปรับขนาดรูปให้ขยายตามความสูงหน้าจอ (35dvh) และไม่เกินขอบ */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
-                                    className={`w-64 h-auto mb-8 ${isShaking ? 'shake-animation' : ''}`} 
+                                    className={`h-[35dvh] w-auto max-w-[80%] object-contain mb-8 ${isShaking ? 'shake-animation' : ''}`} 
                                 />
-                                {/* ปรับขนาดข้อความให้ใหญ่ขึ้น และเพิ่มระยะห่างไม่ให้ทับกัน */}
-                                <p className="text-3xl mb-8 font-bold leading-normal">ตั้งจิตอธิษฐาน...<br/>แล้วเขย่ามือถือ</p>
+                                {/* ปรับขนาดตัวอักษรตามความสูงหน้าจอ */}
+                                <p className="text-[3.5dvh] mb-6 font-bold leading-normal">ตั้งจิตอธิษฐาน...<br/>แล้วเขย่ามือถือ</p>
                             </div>
                         )}
 
