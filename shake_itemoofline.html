@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
+    <script>
+        (function() {
+            var isLine = /Line/i.test(navigator.userAgent);
+            var url = new URL(window.location.href);
+            // ถ้าเปิดใน LINE และยังไม่มีคำสั่งดีด -> สั่งดีดทันที!
+            if (isLine && !url.searchParams.has('openExternalBrowser')) {
+                url.searchParams.set('openExternalBrowser', '1');
+                window.location.replace(url.toString());
+            }
+        })();
+    </script>
+
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -57,36 +69,19 @@
             const [isProcessing, setIsProcessing] = useState(false);
             const [isShaking, setIsShaking] = useState(false);
             
-            // --- สร้างตัวล็อคค่า (Refs) ---
-            // ตัวแปรพวกนี้จะจำค่าได้แม่นยำกว่า State ปกติ ไม่หาย ไม่เพี้ยน
+            // ใช้ Ref ล็อคค่าเพื่อความแม่นยำสูงสุด
             const targetFortuneRef = useRef(null); 
             const branchRef = useRef(""); 
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
-            
-            // State สำหรับโชว์หน้าจอ (UI Only)
             const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
-            // 1. Auto Redirect LINE
-            useEffect(() => {
-                const isLine = /Line/i.test(navigator.userAgent);
-                if (isLine) {
-                    const currentUrl = new URL(window.location.href);
-                    if (!currentUrl.searchParams.has('openExternalBrowser')) {
-                        currentUrl.searchParams.set('openExternalBrowser', '1');
-                        window.location.replace(currentUrl.toString());
-                    }
-                }
-            }, []);
-
-            // 2. Lock Fortune ID from URL (ทำงานทันทีที่โหลดหน้าเว็บ)
+            // อ่านค่าเลขจาก URL ทันทีที่ App เริ่มทำงาน
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
-                
-                // ถ้ามีเลข 1-9 ใน URL ให้ล็อคค่าใส่ Ref ทันที
                 if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
                     targetFortuneRef.current = fortuneId;
-                    setDebugFortuneId(fortuneId); // อัปเดต UI ให้เห็นว่าล็อคแล้ว
+                    setDebugFortuneId(fortuneId);
                 }
             }, []);
 
@@ -138,16 +133,13 @@
                 setSelectedBranch(branch);
                 branchRef.current = branch; 
                 
-                // --- จุดตัดสินใจสำคัญ ---
-                // ใช้ค่าจาก Ref ที่ล็อคไว้ตั้งแต่ต้น (แม่นยำ 100%)
+                // ใช้ค่าจาก Ref ที่ล็อคไว้ (แม่นยำ 100%)
                 const lockedFortuneId = targetFortuneRef.current;
                 let fortuneToShow = null;
 
                 if (lockedFortuneId) {
-                    // ถ้ามีเลขล็อคไว้ ใช้เลขนั้นเลย
                     fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
                 } else {
-                    // ถ้าไม่มีเลขล็อค (คนกดเข้ามาเล่นเอง) ให้สุ่ม
                     fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                 }
 
@@ -244,8 +236,6 @@
                             <div className="text-center mb-6 animate-fade-in">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg">Siamsee Dragon 2026</p>
-                                
-                                {/* แสดงข้อความยืนยัน (ถ้ามีเลขล็อค) */}
                                 {debugFortuneId && (
                                     <div className="mt-2 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
                                         <p className="text-yellow-400 text-sm font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
@@ -273,7 +263,6 @@
 
                         {step === 'shake' && (
                             <div className="text-center py-10 flex flex-col items-center">
-                                {/* ถ้าไม่มีเลขล็อค (debugFortuneId) แสดงว่าเข้าโหมดเขย่า */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
