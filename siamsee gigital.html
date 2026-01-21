@@ -26,7 +26,6 @@
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
-        // *** เพิ่มสาขา "Online" เรียบร้อยแล้ว ***
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
         const FORTUNES = [
@@ -226,7 +225,8 @@
                         
                         {step !== 'result' && (
                             <div className="text-center mb-4 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-14 mx-auto mb-2 drop-shadow-lg" />
+                                {/* ปรับขนาดโลโก้ให้ใหญ่ขึ้น */}
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-6 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                             </div>
                         )}
@@ -250,12 +250,14 @@
 
                         {step === 'shake' && (
                             <div className="text-center flex-grow flex flex-col items-center justify-center">
+                                {/* ปรับขนาดรูปเขย่าให้ใหญ่ขึ้น */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
-                                    className={`w-40 h-auto mb-6 ${isShaking ? 'shake-animation' : ''}`} 
+                                    className={`w-64 h-auto mb-8 ${isShaking ? 'shake-animation' : ''}`} 
                                 />
-                                <p className="text-xl mb-6 font-bold leading-tight">ตั้งจิตอธิษฐาน...<br/>แล้วเขย่ามือถือ</p>
+                                {/* ปรับขนาดข้อความให้ใหญ่ขึ้น และเพิ่มระยะห่างไม่ให้ทับกัน */}
+                                <p className="text-3xl mb-8 font-bold leading-normal">ตั้งจิตอธิษฐาน...<br/>แล้วเขย่ามือถือ</p>
                             </div>
                         )}
 
