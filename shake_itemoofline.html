@@ -22,7 +22,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL เดิม ---
+        // --- URL Backend (ชีท Offline) ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ-LxlRMXHMubIb9e4mupYwPo6YVBp7qSGaONzf-D1EJ_7el0zuPwl1aCbLa1iY92pQA/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -56,8 +56,10 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             const [targetFortuneId, setTargetFortuneId] = useState(null);
+            const [isShaking, setIsShaking] = useState(false);
             
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const branchRef = useRef(""); 
 
             // Auto Redirect LINE
             useEffect(() => {
@@ -71,6 +73,7 @@
                 }
             }, []);
 
+            // Check Query Params for QR Code
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
@@ -79,21 +82,21 @@
                 }
             }, []);
 
-            // --- แก้ไข 1: เพิ่มพารามิเตอร์ branchName เพื่อรับค่าสาขาโดยตรง ---
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
+                const branchToSend = branchName || branchRef.current || selectedBranch;
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline",
+                        sheetName: "Offline", // ลงชีท Offline
                         sessionId: sessionId.current,
-                        branch: branchName || selectedBranch, // ใช้ค่าที่ส่งมา ถ้าไม่มีค่อยใช้จาก State
+                        branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
                         action: actionType 
                     })
-                }).then(() => console.log(`Action saved: ${actionType}`));
+                }).then(() => console.log(`Action saved: ${actionType} | Branch: ${branchToSend}`));
             };
 
             const fetchAiContent = async (fortune) => {
@@ -125,23 +128,38 @@
 
             const handleBranchSelect = async (branch) => {
                 setSelectedBranch(branch);
+                branchRef.current = branch; // Update Ref
                 
                 let fortuneToShow = null;
                 if (targetFortuneId) {
                     fortuneToShow = FORTUNES.find(f => f.id === targetFortuneId);
                 } else {
+                    // กรณีไม่ได้สแกน QR (กดเล่นเอง) ให้สุ่ม
                     fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                 }
 
                 if (fortuneToShow) {
                     setSelectedFortune(fortuneToShow);
-                    setStep('result'); 
+                    setStep('result');
                     
-                    // --- แก้ไข 2: ส่งตัวแปร branch เข้าไปตรงๆ เลย (ไม่รอ State Update) ---
+                    // บันทึกทันทีพร้อมชื่อสาขา
                     saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
                     
                     await fetchAiContent(fortuneToShow);
                 }
+            };
+
+            const handleShake = () => {
+                // Fallback Shake Function (ถ้าไม่มี QR)
+                setIsShaking(true);
+                setTimeout(async () => {
+                    setIsShaking(false);
+                    const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+                    setSelectedFortune(randomFortune);
+                    setStep('result');
+                    const aiResult = await fetchAiContent(randomFortune);
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult, branchRef.current);
+                }, 2000);
             };
 
             const getImageFile = async () => {
@@ -165,7 +183,7 @@
                     document.body.appendChild(link);
                     link.click();
                     
-                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
+                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
                     
                     setTimeout(() => {
                         document.body.removeChild(link);
@@ -191,7 +209,7 @@
                             text: `ฉันได้เซียมซี "${selectedFortune.title}" เฮงมาก! 🎉`,
                             files: [file]
                         });
-                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
+                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis, branchRef.current);
                     } else {
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
                         setIsProcessing(false); 
@@ -238,9 +256,26 @@
                             </div>
                         )}
 
+                        {step === 'shake' && (
+                            <div className="text-center py-10 flex flex-col items-center">
+                                {/* ถ้าเผลอเข้ามาหน้านี้โดยไม่มี QR ก็ให้เขย่าได้ */}
+                                <img 
+                                    src="shake_item.png" 
+                                    alt="Shake Item" 
+                                    className={`w-48 h-auto mb-6 ${isShaking ? 'shake-animation' : ''}`} 
+                                />
+                                <button 
+                                    onClick={handleShake}
+                                    disabled={isShaking}
+                                    className="w-full max-w-[200px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-2xl shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                >
+                                    {isShaking ? '...' : 'เขย่าเลย!'}
+                                </button>
+                            </div>
+                        )}
+
                         {step === 'result' && selectedFortune && (
                             <div className="text-center animate-fade-in w-full flex flex-col items-center pb-4">
-                                
                                 <div className="relative w-full mb-8 mt-4">
                                      <img 
                                         src={selectedFortune.image} 
