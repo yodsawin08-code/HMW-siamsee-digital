@@ -10,10 +10,8 @@
             var userAgent = navigator.userAgent || navigator.vendor || window.opera;
             var isLine = /Line/i.test(userAgent);
             
-            // ถ้าเป็น LINE ให้ดีดทันที!
             if (isLine) {
                 var url = new URL(window.location.href);
-                // เช็คว่ามีคำสั่งแล้วหรือยัง ป้องกัน Loop
                 if (!url.searchParams.has('openExternalBrowser')) {
                     url.searchParams.set('openExternalBrowser', '1');
                     window.location.replace(url.toString());
@@ -39,7 +37,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL Backend (ชีท Offline) ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -68,19 +65,19 @@
         const App = () => {
             const [step, setStep] = useState('branch'); 
             const [selectedBranch, setSelectedBranch] = useState("");
+            const [isShaking, setIsShaking] = useState(false);
             const [selectedFortune, setSelectedFortune] = useState(null);
             const [aiAnalysis, setAiAnalysis] = useState("");
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
-            const [isShaking, setIsShaking] = useState(false);
             
-            // ใช้ Ref ล็อคค่าเพื่อความแม่นยำสูงสุด
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
             const targetFortuneRef = useRef(null); 
             const branchRef = useRef(""); 
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
+            const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
-            // อ่านค่าเลขจาก URL ทันทีที่ App เริ่มทำงาน
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
@@ -89,6 +86,25 @@
                     setDebugFortuneId(fortuneId);
                 }
             }, []);
+
+            // Handle Motion for Shake
+            useEffect(() => {
+                if (step !== 'shake' || isShaking) return;
+                const handleMotion = (event) => {
+                    if (!event.accelerationIncludingGravity) return;
+                    const { x, y, z } = event.accelerationIncludingGravity;
+                    const acc = accelerationRef.current;
+                    const deltaX = Math.abs(x - acc.x);
+                    const deltaY = Math.abs(y - acc.y);
+                    const deltaZ = Math.abs(z - acc.z);
+                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
+                        handleShake();
+                    }
+                    accelerationRef.current = { x, y, z };
+                };
+                window.addEventListener('devicemotion', handleMotion);
+                return () => window.removeEventListener('devicemotion', handleMotion);
+            }, [step, isShaking]);
 
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
                 const branchToSend = branchName || branchRef.current || selectedBranch;
@@ -110,7 +126,7 @@
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
                     setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)"; // ส่งค่ากลับไปใช้
+                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)";
                 }
                 
                 setIsAnalyzing(true);
@@ -124,7 +140,7 @@
                     const data = await response.json();
                     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "เฮงๆ รวยๆ";
                     setAiAnalysis(resultText);
-                    return resultText; // ส่งค่ากลับไปใช้
+                    return resultText;
                 } catch (error) {
                     console.error("AI Error", error);
                     const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
@@ -136,6 +152,15 @@
             };
 
             const handleBranchSelect = async (branch) => {
+                // *** 1. ขออนุญาต iOS Motion Sensor ทันทีที่กดปุ่มนี้ ***
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        await DeviceMotionEvent.requestPermission();
+                    } catch (e) {
+                        console.error("Motion permission error:", e);
+                    }
+                }
+
                 setSelectedBranch(branch);
                 branchRef.current = branch; 
                 
@@ -152,31 +177,28 @@
                     setSelectedFortune(fortuneToShow);
                     setStep('result');
                     
-                    // 1. บันทึกครั้งแรก: รอ AI...
                     saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
-                    
-                    // 2. รอ AI คิดเสร็จ
                     const aiResult = await fetchAiContent(fortuneToShow);
-
-                    // 3. บันทึกครั้งที่สอง: ส่งผล AI กลับไปอัปเดต!
                     if (aiResult) {
                          saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
                     }
+                } else {
+                    // กรณี Offline แต่ไม่มีเลขล็อค -> ไปหน้าเขย่า
+                    setStep('shake');
                 }
             };
 
             const handleShake = () => {
+                // Manual Shake Trigger
                 setIsShaking(true);
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
                     setIsShaking(false);
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
                     
-                    // บันทึกครั้งแรก
                     saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
-                    
-                    // รอ AI และบันทึกซ้ำ
                     const aiResult = await fetchAiContent(randomFortune);
                     if (aiResult) {
                          saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
@@ -254,12 +276,12 @@
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
                         
                         {step !== 'result' && (
-                            <div className="text-center mb-2 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-20 mx-auto mb-2 drop-shadow-lg" />
+                            <div className="text-center mb-4 animate-fade-in flex-shrink-0">
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-24 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                                 {debugFortuneId && (
-                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
-                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    <div className="mt-2 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-sm font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
                                     </div>
                                 )}
                             </div>
@@ -283,26 +305,22 @@
                         )}
 
                         {step === 'shake' && (
-                            // ใช้ flex-grow เพื่อยึดพื้นที่ว่าง และ justify-between เพื่อกระจาย
-                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2">
-                                {/* Wrapper สำหรับรูปภาพ ให้ขยายเต็มที่ (flex-1) และซ่อนส่วนเกิน (overflow-hidden) */}
+                            <div className="text-center flex-grow flex flex-col items-center justify-start pt-4">
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
-                                    {/* รูปภาพ: ให้สูงเต็ม parent (h-full) แต่ไม่เกินขอบ (object-contain) */}
                                     <img 
                                         src="shake_item.png" 
                                         alt="Shake Item" 
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
-
                                 <div className="flex-shrink-0 w-full">
-                                    <p className="text-[3dvh] font-bold leading-tight text-yellow-100 mb-4">
+                                    <p className="text-[3.5dvh] mb-4 font-bold leading-normal text-yellow-100">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
                                     </p>
                                     <button 
                                         onClick={handleShake}
                                         disabled={isShaking}
-                                        className="w-[80%] max-w-[300px] py-3 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                        className="w-[80%] max-w-[300px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
                                     >
                                         {isShaking ? '...' : 'เขย่าเลย!'}
                                     </button>
@@ -312,8 +330,6 @@
 
                         {step === 'result' && selectedFortune && (
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-2">
-                                {/* Logo is hidden here because step === 'result' */}
-                                
                                 <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2">
                                      <img 
                                         src={selectedFortune.image} 
