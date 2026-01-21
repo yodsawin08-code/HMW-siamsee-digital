@@ -73,7 +73,7 @@
                 }
             }, []);
 
-            // Check Query Params for QR Code
+            // Check Query Params for UI Display Only
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
@@ -130,11 +130,17 @@
                 setSelectedBranch(branch);
                 branchRef.current = branch; // Update Ref
                 
+                // --- แก้ไขจุดสำคัญ: อ่านค่าจาก URL ตรงนี้เลย (ไม่รอ State) ---
+                const params = new URLSearchParams(window.location.search);
+                const urlFortuneId = parseInt(params.get('fortune'));
+
                 let fortuneToShow = null;
-                if (targetFortuneId) {
-                    fortuneToShow = FORTUNES.find(f => f.id === targetFortuneId);
+                
+                if (urlFortuneId && urlFortuneId >= 1 && urlFortuneId <= 9) {
+                    // ถ้ามีเลขใน URL ให้ใช้เลขนั้นเลย
+                    fortuneToShow = FORTUNES.find(f => f.id === urlFortuneId);
                 } else {
-                    // กรณีไม่ได้สแกน QR (กดเล่นเอง) ให้สุ่ม
+                    // ถ้าไม่มี (ไม่ได้สแกน QR) ให้สุ่ม
                     fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                 }
 
@@ -150,7 +156,6 @@
             };
 
             const handleShake = () => {
-                // Fallback Shake Function (ถ้าไม่มี QR)
                 setIsShaking(true);
                 setTimeout(async () => {
                     setIsShaking(false);
@@ -235,6 +240,7 @@
                             <div className="text-center mb-6 animate-fade-in">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-4 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg">Siamsee Dragon 2026</p>
+                                {/* แสดงข้อความยืนยันเลขใบเซียมซี (ถ้ามี) */}
                                 {targetFortuneId && <p className="text-yellow-400 text-sm mt-2 font-bold">ท่านได้ใบเซียมซีที่ {targetFortuneId}</p>}
                             </div>
                         )}
