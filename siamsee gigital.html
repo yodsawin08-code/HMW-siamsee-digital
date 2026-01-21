@@ -16,14 +16,6 @@
         body { font-family: 'Sarabun', sans-serif; overscroll-behavior: none; }
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
-        
-        /* Pulse Animation สำหรับปุ่ม LINE */
-        .pulse-btn { animation: pulse-shadow 2s infinite; }
-        @keyframes pulse-shadow {
-            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(234, 179, 8, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
-        }
     </style>
 </head>
 <body class="bg-red-950">
@@ -48,12 +40,10 @@
             { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง ประสบความสำเร็จอย่างมั่นคงและยั่งยืน', image: '9.png' }
         ];
 
-        // Icons (SVG)
         const Icons = {
             Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
             Share: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
-            Loader: () => <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-            External: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Loader: () => <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         };
 
         const { useState, useEffect, useRef } = React;
@@ -67,35 +57,26 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             
-            const isLineBrowser = /Line/i.test(navigator.userAgent);
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
 
-            // --- ส่วนจัดการ LINE Redirect (สำคัญที่สุด) ---
-            if (isLineBrowser) {
-                const currentUrl = new URL(window.location.href);
-                // ถ้ายังไม่มีพารามิเตอร์ openExternalBrowser ให้สร้างลิงก์ใหม่
-                if (!currentUrl.searchParams.has('openExternalBrowser')) {
-                    currentUrl.searchParams.set('openExternalBrowser', '1');
+            // --- ระบบ Auto Redirect (ทำงานทันทีที่เปิดหน้าเว็บ) ---
+            useEffect(() => {
+                const isLine = /Line/i.test(navigator.userAgent);
+                if (isLine) {
+                    // สร้าง URL ใหม่ที่มีคำสั่ง ?openExternalBrowser=1
+                    const currentUrl = new URL(window.location.href);
+                    
+                    // ป้องกันการ Loop (ถ้ามีพารามิเตอร์แล้ว ไม่ต้อง Redirect ซ้ำ)
+                    if (!currentUrl.searchParams.has('openExternalBrowser')) {
+                        currentUrl.searchParams.set('openExternalBrowser', '1');
+                        // สั่ง Redirect ทันที
+                        window.location.replace(currentUrl.toString());
+                    }
                 }
-                
-                // แสดงหน้าจอ Force Redirect แทนหน้าเกม
-                return (
-                    <div className="min-h-[100dvh] bg-red-950 flex flex-col items-center justify-center p-6 text-center text-white">
-                        <img src="logo.png" alt="Logo" className="h-20 mb-8 drop-shadow-lg" />
-                        <h1 className="text-2xl font-bold mb-4 text-yellow-400">เข้าสู่ระบบเซียมซีดิจิทัล</h1>
-                        <p className="mb-8 text-red-100">เพื่อประสบการณ์ที่ดีที่สุดและการดาวน์โหลดภาพ<br/>กรุณาเปิดในเบราว์เซอร์หลัก</p>
-                        
-                        <a href={currentUrl.href} className="pulse-btn bg-yellow-500 text-red-900 font-bold text-xl py-4 px-8 rounded-full shadow-xl flex items-center gap-3 hover:scale-105 transition-transform">
-                            <Icons.External />
-                            แตะเพื่อเริ่มเล่น
-                        </a>
-                        <p className="mt-6 text-sm text-white/40">ระบบจะนำท่านไปยัง Chrome หรือ Safari โดยอัตโนมัติ</p>
-                    </div>
-                );
-            }
-            // ---------------------------------------------
+            }, []);
+            // ----------------------------------------------------
 
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
@@ -269,6 +250,7 @@
 
                         {step === 'shake' && (
                             <div className="text-center py-10 flex flex-col items-center">
+                                {/* รูปเขย่า */}
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
