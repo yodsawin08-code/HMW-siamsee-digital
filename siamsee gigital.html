@@ -13,16 +13,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Sarabun', sans-serif; overscroll-behavior: none; }
+        body { font-family: 'Sarabun', sans-serif; overscroll-behavior: none; background-color: #450a0a; }
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
     </style>
 </head>
-<body class="bg-red-950">
-    <div id="root"></div>
+<body class="h-[100dvh] w-screen overflow-hidden flex justify-center items-center">
+    <div id="root" class="w-full h-full"></div>
 
     <script type="text/babel">
-        // --- URL เดิม ---
+        // --- Logic เดิมทั้งหมด ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -61,22 +61,17 @@
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
 
-            // --- ระบบ Auto Redirect (ทำงานทันทีที่เปิดหน้าเว็บ) ---
+            // Auto Redirect (เหมือนกัน)
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
-                    // สร้าง URL ใหม่ที่มีคำสั่ง ?openExternalBrowser=1
                     const currentUrl = new URL(window.location.href);
-                    
-                    // ป้องกันการ Loop (ถ้ามีพารามิเตอร์แล้ว ไม่ต้อง Redirect ซ้ำ)
                     if (!currentUrl.searchParams.has('openExternalBrowser')) {
                         currentUrl.searchParams.set('openExternalBrowser', '1');
-                        // สั่ง Redirect ทันที
                         window.location.replace(currentUrl.toString());
                     }
                 }
             }, []);
-            // ----------------------------------------------------
 
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
@@ -115,7 +110,6 @@
                     setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
                     return "คำอวยพรมาตรฐาน";
                 }
-                
                 setIsAnalyzing(true);
                 try {
                     const prompt = `วิเคราะห์เซียมซีใบที่ ${fortune.id} หัวข้อ "${fortune.title}" รายละเอียด "${fortune.detail}" สำหรับลูกค้า Honda Maliwan สาขา ${selectedBranch} ขอคำอวยพรสั้นๆ 1 ประโยคที่เป็นมงคล`;
@@ -163,20 +157,16 @@
             const handleDownload = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
-
                 try {
                     const file = await getImageFile();
                     const url = window.URL.createObjectURL(file);
-                    
                     const link = document.createElement('a');
                     link.style.display = 'none';
                     link.href = url;
                     link.download = file.name;
                     document.body.appendChild(link);
                     link.click();
-                    
                     saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
-                    
                     setTimeout(() => {
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
@@ -192,10 +182,8 @@
             const handleNativeShare = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
-
                 try {
                     const file = await getImageFile();
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             title: 'เซียมซีดิจิทัล Honda Maliwan',
@@ -216,30 +204,32 @@
             };
 
             return (
-                <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 text-white relative overflow-hidden">
+                <div className="h-[100dvh] w-full max-w-[60vh] mx-auto bg-red-900/80 backdrop-blur-md border-x border-yellow-500 shadow-2xl relative flex flex-col justify-between overflow-hidden">
                     
+                    {/* Background Logo */}
                     <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
-                        <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
+                        <span className="text-[20vh] font-bold text-yellow-500 rotate-90">HONDA</span>
                     </div>
 
-                    <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-6 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-center min-h-[50vh]">
-                        
-                        {step !== 'result' && (
-                            <div className="text-center mb-6 animate-fade-in">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-4 drop-shadow-lg" />
-                                <p className="text-red-200 text-lg">Siamsee Dragon 2026</p>
-                            </div>
-                        )}
+                    {/* --- HEADER (Fixed Top) --- */}
+                    <div className="flex-none pt-6 pb-2 text-center z-10">
+                        <img src="logo.png" alt="HONDA MALIWAN" className="h-12 mx-auto mb-2 drop-shadow-lg" />
+                        <p className="text-red-200 text-sm">Siamsee Dragon 2026</p>
+                    </div>
 
+                    {/* --- MAIN CONTENT (Flex Grow) --- */}
+                    <div className="flex-1 flex flex-col justify-center items-center relative z-10 px-4 min-h-0">
+                        
+                        {/* Step: Branch Selection */}
                         {step === 'branch' && (
-                            <div className="animate-fade-in w-full">
-                                <h2 className="text-xl text-center mb-5 font-bold">เลือกสาขาที่ท่านใช้บริการ</h2>
-                                <div className="space-y-4">
+                            <div className="w-full animate-fade-in flex flex-col h-full justify-center">
+                                <h2 className="text-xl text-center mb-6 font-bold text-white">เลือกสาขาที่ท่านใช้บริการ</h2>
+                                <div className="space-y-3 w-full">
                                     {BRANCHES.map(branch => (
                                         <button 
                                             key={branch}
                                             onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
-                                            className="w-full py-4 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation"
+                                            className="w-full py-4 px-4 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-xl transition duration-300 font-bold text-base active:scale-95 touch-manipulation"
                                         >
                                             {branch}
                                         </button>
@@ -248,74 +238,85 @@
                             </div>
                         )}
 
+                        {/* Step: Shake */}
                         {step === 'shake' && (
-                            <div className="text-center py-10 flex flex-col items-center">
-                                {/* รูปเขย่า */}
+                            <div className="text-center w-full animate-fade-in flex flex-col items-center justify-center h-full">
                                 <img 
                                     src="shake_item.png" 
                                     alt="Shake Item" 
-                                    className={`w-48 h-auto mb-6 ${isShaking ? 'shake-animation' : ''}`} 
+                                    className={`w-[50%] max-w-[200px] h-auto mb-8 ${isShaking ? 'shake-animation' : ''}`} 
                                 />
-                                <p className="text-2xl mb-8 font-bold">ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า</p>
                                 <button 
                                     onClick={handleShake}
                                     disabled={isShaking}
-                                    className="w-full max-w-[200px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-2xl shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                    className="w-full max-w-[220px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-xl shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
                                 >
                                     {isShaking ? '...' : 'เขย่าเลย!'}
                                 </button>
+                                <p className="text-white/60 mt-4 text-sm">ตั้งจิตอธิษฐานแล้วกดเขย่า</p>
                             </div>
                         )}
 
+                        {/* Step: Result (จัด Layout ให้รูปใหญ่สุด) */}
                         {step === 'result' && selectedFortune && (
-                            <div className="text-center animate-fade-in w-full flex flex-col items-center pb-4">
+                            <div className="w-full h-full flex flex-col animate-fade-in">
                                 
-                                <div className="relative w-full mb-8 mt-4">
+                                {/* Image Container: ยืดเต็มที่ (Flex-1) */}
+                                <div className="flex-1 relative min-h-0 w-full flex items-center justify-center py-2">
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
-                                        className="w-full h-auto rounded-2xl shadow-2xl border-2 border-yellow-500 transform scale-110 relative z-20"
+                                        className="max-h-full max-w-full object-contain drop-shadow-2xl rounded-lg"
                                     />
                                 </div>
 
-                                <div className="bg-yellow-500/20 p-4 rounded-xl border border-yellow-500/50 mb-4 w-full relative z-10">
-                                    <h4 className="text-yellow-400 text-sm font-bold mb-1">✨ พรพิเศษจากมังกรทอง</h4>
-                                    <p className="text-white italic text-base">
-                                        {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `"${aiAnalysis}"`}
-                                    </p>
+                                {/* AI Text Box (Fixed Height at Bottom) */}
+                                <div className="flex-none w-full mb-3">
+                                    <div className="bg-yellow-500/20 p-3 rounded-xl border border-yellow-500/50 relative">
+                                        <h4 className="text-yellow-400 text-xs font-bold mb-1">✨ พรพิเศษจากมังกรทอง</h4>
+                                        <div className="max-h-[80px] overflow-y-auto">
+                                            <p className="text-white italic text-sm leading-relaxed">
+                                                {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `"${aiAnalysis}"`}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="flex gap-3 w-full mb-4 relative z-10">
+                                {/* Buttons (Fixed at Bottom) */}
+                                <div className="flex-none w-full flex gap-3 mb-2">
                                     <button 
                                         onClick={handleDownload}
                                         disabled={isProcessing}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold border border-white/30 transition active:scale-95"
+                                        className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold border border-white/30 transition active:scale-95 text-sm"
                                     >
                                         {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
-                                        {isProcessing ? '...' : 'บันทึกภาพ'}
+                                        {isProcessing ? '...' : 'บันทึก'}
                                     </button>
                                     <button 
                                         onClick={handleNativeShare}
                                         disabled={isProcessing}
-                                        className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-3 rounded-xl font-bold shadow-lg transition active:scale-95"
+                                        className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-3 rounded-xl font-bold shadow-lg transition active:scale-95 text-sm"
                                     >
                                         {isProcessing ? <Icons.Loader /> : <Icons.Share />}
                                         {isProcessing ? '...' : 'แชร์'}
                                     </button>
                                 </div>
 
-                                <button 
-                                    onClick={() => window.location.reload()}
-                                    className="text-yellow-400 underline hover:text-white text-sm py-2 relative z-10"
-                                >
-                                    เล่นใหม่อีกครั้ง
-                                </button>
+                                <div className="flex-none text-center pb-2">
+                                    <button 
+                                        onClick={() => window.location.reload()}
+                                        className="text-yellow-400 underline hover:text-white text-xs py-2"
+                                    >
+                                        เล่นใหม่อีกครั้ง
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>
-                    
-                    <div className="mt-8 text-sm text-red-400/60 text-center absolute bottom-4">
-                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
+
+                    {/* --- FOOTER (Fixed Bottom) --- */}
+                    <div className="flex-none text-[10px] text-red-400/60 text-center pb-2">
+                        © 2026 Honda Maliwan
                     </div>
                 </div>
             );
