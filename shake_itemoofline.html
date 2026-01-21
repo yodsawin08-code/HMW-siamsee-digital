@@ -34,8 +34,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL Backend (ชีท Offline) ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJ-LxlRMXHMubIb9e4mupYwPo6YVBp7qSGaONzf-D1EJ_7el0zuPwl1aCbLa1iY92pQA/exec"; 
+        // --- อัปเดต URL ใหม่ล่าสุด ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
         const GEMINI_API_KEY = ""; 
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
@@ -99,13 +99,13 @@
                         aiBlessing: aiText || "-",
                         action: actionType 
                     })
-                }).then(() => console.log(`Action saved: ${actionType} | Branch: ${branchToSend}`));
+                }).then(() => console.log(`Action saved: ${actionType} | AI: ${aiText}`));
             };
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
                     setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "คำอวยพรมาตรฐาน";
+                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)"; // ส่งค่ากลับไปใช้
                 }
                 
                 setIsAnalyzing(true);
@@ -119,11 +119,12 @@
                     const data = await response.json();
                     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "เฮงๆ รวยๆ";
                     setAiAnalysis(resultText);
-                    return resultText;
+                    return resultText; // ส่งค่ากลับไปใช้
                 } catch (error) {
                     console.error("AI Error", error);
-                    setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
-                    return "Error API";
+                    const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
+                    setAiAnalysis(errorText);
+                    return errorText;
                 } finally {
                     setIsAnalyzing(false);
                 }
@@ -133,7 +134,6 @@
                 setSelectedBranch(branch);
                 branchRef.current = branch; 
                 
-                // ใช้ค่าจาก Ref ที่ล็อคไว้ (แม่นยำ 100%)
                 const lockedFortuneId = targetFortuneRef.current;
                 let fortuneToShow = null;
 
@@ -146,8 +146,17 @@
                 if (fortuneToShow) {
                     setSelectedFortune(fortuneToShow);
                     setStep('result');
+                    
+                    // 1. บันทึกครั้งแรก: รอ AI...
                     saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
-                    await fetchAiContent(fortuneToShow);
+                    
+                    // 2. รอ AI คิดเสร็จ
+                    const aiResult = await fetchAiContent(fortuneToShow);
+
+                    // 3. บันทึกครั้งที่สอง: ส่งผล AI กลับไปอัปเดต!
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
+                    }
                 }
             };
 
@@ -158,8 +167,15 @@
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
+                    
+                    // บันทึกครั้งแรก
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
+                    
+                    // รอ AI และบันทึกซ้ำ
                     const aiResult = await fetchAiContent(randomFortune);
-                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult, branchRef.current);
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
+                    }
                 }, 2000);
             };
 
