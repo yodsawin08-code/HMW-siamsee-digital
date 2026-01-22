@@ -98,15 +98,19 @@
                 }
             }, []);
 
+            // *** Logic เขย่า (Updated for iOS) ***
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
+                    // ตรวจสอบว่ามีข้อมูลส่งมาหรือไม่
                     if (!event.accelerationIncludingGravity) return;
+                    
                     const { x, y, z } = event.accelerationIncludingGravity;
                     const acc = accelerationRef.current;
                     const deltaX = Math.abs(x - acc.x);
                     const deltaY = Math.abs(y - acc.y);
                     const deltaZ = Math.abs(z - acc.z);
+                    
                     if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
                         handleShake();
                     }
@@ -135,7 +139,6 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    // *** 2. แก้ไขข้อความ (เพิ่ม \n เพื่อขึ้นบรรทัดใหม่) ***
                     const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
                     setAiAnalysis(defaultMsg);
                     return defaultMsg;
@@ -163,9 +166,19 @@
                 }
             };
 
+            // *** แก้ไข: ขออนุญาต iOS ทันทีที่กดปุ่มเลือกสาขา ***
             const handleBranchSelect = async (branch) => {
+                // ขออนุญาตเข้าถึง Motion Sensor สำหรับ iOS 13+
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            alert('กรุณากดอนุญาตให้เข้าถึงการเคลื่อนไหวเพื่อเล่นเกม');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("iOS permission error:", e);
+                    }
                 }
 
                 setSelectedBranch(branch);
@@ -194,6 +207,7 @@
             };
 
             const handleShake = () => {
+                // เผื่อไว้กรณีปุ่มกดเขย่าเอง
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
                 }
@@ -215,6 +229,7 @@
             };
 
             const getImageFile = async () => {
+                // ไม่ใช้ Cache Busting (?t=...) เพื่อให้โหลดเร็ว
                 const response = await fetch(selectedFortune.image);
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
@@ -349,7 +364,6 @@
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        {/* 3. เพิ่ม whitespace-pre-line เพื่อให้แสดงผลการเว้นบรรทัด */}
                                         <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
