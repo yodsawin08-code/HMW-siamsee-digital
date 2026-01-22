@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
+    <link rel="preload" as="image" href="logo.png">
+    <link rel="preload" as="image" href="shake_item.png">
+    <link rel="preload" as="image" href="1.png">
+    <link rel="preload" as="image" href="2.png">
+    <link rel="preload" as="image" href="3.png">
+    <link rel="preload" as="image" href="4.png">
+    <link rel="preload" as="image" href="5.png">
+    <link rel="preload" as="image" href="6.png">
+    <link rel="preload" as="image" href="7.png">
+    <link rel="preload" as="image" href="8.png">
+    <link rel="preload" as="image" href="9.png">
+
     <script>
         (function() {
             var userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -33,15 +45,6 @@
     </style>
 </head>
 <body class="bg-red-950">
-    
-    <div style="display:none; visibility:hidden; width:0; height:0; overflow:hidden;">
-        <img src="logo.png" />
-        <img src="shake_item.png" />
-        <img src="1.png" /><img src="2.png" /><img src="3.png" />
-        <img src="4.png" /><img src="5.png" /><img src="6.png" />
-        <img src="7.png" /><img src="8.png" /><img src="9.png" />
-    </div>
-
     <div id="root"></div>
 
     <script type="text/babel">
@@ -95,7 +98,6 @@
                 }
             }, []);
 
-            // Handle Motion for Shake
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
@@ -133,10 +135,10 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    // *** 3. แก้ไขข้อความ Default ให้มี \n ***
-                    const defaultText = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
-                    setAiAnalysis(defaultText);
-                    return defaultText;
+                    // *** 2. แก้ไขข้อความ (เพิ่ม \n เพื่อขึ้นบรรทัดใหม่) ***
+                    const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
+                    setAiAnalysis(defaultMsg);
+                    return defaultMsg;
                 }
                 
                 setIsAnalyzing(true);
@@ -319,7 +321,6 @@
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
-                                
                                 <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
                                     <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
@@ -348,7 +349,7 @@
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        {/* *** 4. เพิ่ม whitespace-pre-line เพื่อรองรับ \n *** */}
+                                        {/* 3. เพิ่ม whitespace-pre-line เพื่อให้แสดงผลการเว้นบรรทัด */}
                                         <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
