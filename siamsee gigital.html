@@ -5,20 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <script>
-        (function() {
-            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-            var isLine = /Line/i.test(userAgent);
-            if (isLine) {
-                var url = new URL(window.location.href);
-                if (!url.searchParams.has('openExternalBrowser')) {
-                    url.searchParams.set('openExternalBrowser', '1');
-                    window.location.replace(url.toString());
-                }
-            }
-        })();
-    </script>
-
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -36,7 +22,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
+        // --- URL เดิม ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
@@ -71,18 +58,19 @@
             const [isProcessing, setIsProcessing] = useState(false);
             
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
-            const targetFortuneRef = useRef(null); 
-            const branchRef = useRef(""); 
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
-            const [debugFortuneId, setDebugFortuneId] = useState(null); 
+            const branchRef = useRef(""); 
 
+            // --- ระบบ Auto Redirect ---
             useEffect(() => {
-                const params = new URLSearchParams(window.location.search);
-                const fortuneId = parseInt(params.get('fortune'));
-                if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
-                    targetFortuneRef.current = fortuneId;
-                    setDebugFortuneId(fortuneId);
+                const isLine = /Line/i.test(navigator.userAgent);
+                if (isLine) {
+                    const currentUrl = new URL(window.location.href);
+                    if (!currentUrl.searchParams.has('openExternalBrowser')) {
+                        currentUrl.searchParams.set('openExternalBrowser', '1');
+                        window.location.replace(currentUrl.toString());
+                    }
                 }
             }, []);
 
@@ -104,27 +92,25 @@
                 return () => window.removeEventListener('devicemotion', handleMotion);
             }, [step, isShaking]);
 
-            const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
-                const branchToSend = branchName || branchRef.current || selectedBranch;
+            const saveToGoogleSheets = (actionType, fortune, aiText) => {
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline", 
                         sessionId: sessionId.current,
-                        branch: branchToSend,
+                        branch: selectedBranch,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
                         action: actionType 
                     })
-                }).then(() => console.log(`Action saved: ${actionType} | AI: ${aiText}`));
+                }).then(() => console.log(`Action saved: ${actionType}`));
             };
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
                     setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)";
+                    return "คำอวยพรมาตรฐาน";
                 }
                 
                 setIsAnalyzing(true);
@@ -141,9 +127,8 @@
                     return resultText;
                 } catch (error) {
                     console.error("AI Error", error);
-                    const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
-                    setAiAnalysis(errorText);
-                    return errorText;
+                    setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
+                    return "Error API";
                 } finally {
                     setIsAnalyzing(false);
                 }
@@ -153,37 +138,15 @@
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
-
                 setSelectedBranch(branch);
-                branchRef.current = branch; 
-                
-                const lockedFortuneId = targetFortuneRef.current;
-                let fortuneToShow = null;
-
-                if (lockedFortuneId) {
-                    fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
-                } else {
-                    fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
-                }
-
-                if (fortuneToShow) {
-                    setSelectedFortune(fortuneToShow);
-                    setStep('result');
-                    saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
-                    const aiResult = await fetchAiContent(fortuneToShow);
-                    if (aiResult) {
-                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
-                    }
-                } else {
-                    setStep('shake');
-                }
+                branchRef.current = branch;
+                setStep('shake');
             };
 
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
                 }
-                
                 setIsShaking(true);
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
@@ -191,12 +154,8 @@
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
-                    
-                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
                     const aiResult = await fetchAiContent(randomFortune);
-                    if (aiResult) {
-                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
-                    }
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult);
                 }, 2000);
             };
 
@@ -221,7 +180,7 @@
                     document.body.appendChild(link);
                     link.click();
                     
-                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
+                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
                     
                     setTimeout(() => {
                         document.body.removeChild(link);
@@ -241,13 +200,14 @@
 
                 try {
                     const file = await getImageFile();
+
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             title: 'เซียมซีดิจิทัล Honda Maliwan',
                             text: `ฉันได้เซียมซี "${selectedFortune.title}" เฮงมาก! 🎉`,
                             files: [file]
                         });
-                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis, branchRef.current);
+                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
                     } else {
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
                         setIsProcessing(false); 
@@ -273,11 +233,6 @@
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
-                                {debugFortuneId && (
-                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
-                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
-                                    </div>
-                                )}
                             </div>
                         )}
 
@@ -288,7 +243,7 @@
                                     {BRANCHES.map(branch => (
                                         <button 
                                             key={branch}
-                                            onClick={() => handleBranchSelect(branch)}
+                                            onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
                                             className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
                                         >
                                             {branch}
@@ -366,7 +321,7 @@
                                         onClick={() => window.location.reload()}
                                         className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
                                     >
-                                        สแกนใหม่อีกครั้ง
+                                        เล่นใหม่อีกครั้ง
                                     </button>
                                 </div>
                             </div>
