@@ -191,6 +191,7 @@
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
+                    
                     saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
                     const aiResult = await fetchAiContent(randomFortune);
                     if (aiResult) {
@@ -219,7 +220,9 @@
                     link.download = file.name;
                     document.body.appendChild(link);
                     link.click();
+                    
                     saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
+                    
                     setTimeout(() => {
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
@@ -321,9 +324,10 @@
                         )}
 
                         {step === 'result' && selectedFortune && (
+                            // หน้าผลลัพธ์: จัด layout แบบ flex column เต็มความสูง
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-2 overflow-hidden">
                                 
-                                {/* 1. รูปภาพ: ให้ยืดเต็มพื้นที่ (flex-1) และใช้ min-h-0 เพื่อป้องกันการล้น */}
+                                {/* ส่วนรูปภาพ: ให้ยืดเต็มที่ (flex-1) แต่มี min-h-0 เพื่อไม่ให้ดันจนล้น */}
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 my-1">
                                      <img 
                                         src={selectedFortune.image} 
@@ -332,20 +336,21 @@
                                     />
                                 </div>
 
-                                {/* 2. ส่วนล่าง: ย่อขนาดลง (Compact Mode) และห้ามหดตัว (flex-shrink-0) */}
+                                {/* ส่วนล่าง: ลดขนาดและระยะห่างให้กระชับที่สุด (Compact Mode) */}
                                 <div className="w-full flex-shrink-0">
-                                    <div className="bg-yellow-500/20 p-2 rounded-xl border border-yellow-500/50 mb-2 w-full relative z-10">
-                                        <h4 className="text-yellow-400 text-xs font-bold mb-0.5 leading-tight">✨ พรพิเศษจากมังกรทอง</h4>
-                                        <p className="text-white italic text-xs leading-tight">
-                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `"${aiAnalysis}"`}
+                                    {/* กล่อง AI: เอาหัวข้อออก ลด padding/margin */}
+                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
+                                        <p className="text-yellow-100 italic text-xs leading-tight">
+                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
                                     </div>
 
-                                    <div className="flex gap-2 w-full mb-1 relative z-10">
+                                    {/* ปุ่มกด: ลด padding แนวตั้ง (py-1.5) และระยะห่าง */}
+                                    <div className="flex gap-2 w-full mb-0.5 relative z-10">
                                         <button 
                                             onClick={handleDownload}
                                             disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-2 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
+                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
                                         >
                                             {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
                                             {isProcessing ? '...' : 'บันทึกภาพ'}
@@ -353,7 +358,7 @@
                                         <button 
                                             onClick={handleNativeShare}
                                             disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-2 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
+                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-1.5 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
                                         >
                                             {isProcessing ? <Icons.Loader /> : <Icons.Share />}
                                             {isProcessing ? '...' : 'แชร์'}
@@ -362,7 +367,7 @@
 
                                     <button 
                                         onClick={() => window.location.reload()}
-                                        className="text-yellow-400 underline hover:text-white text-[10px] py-1 relative z-10"
+                                        className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
                                     >
                                         สแกนใหม่อีกครั้ง
                                     </button>
