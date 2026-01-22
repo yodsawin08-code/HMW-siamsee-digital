@@ -19,9 +19,19 @@
     </style>
 </head>
 <body class="bg-red-950">
+    
+    <div style="display:none; visibility:hidden; width:0; height:0; overflow:hidden;">
+        <img src="logo.png" />
+        <img src="shake_item.png" />
+        <img src="1.png" /><img src="2.png" /><img src="3.png" />
+        <img src="4.png" /><img src="5.png" /><img src="6.png" />
+        <img src="7.png" /><img src="8.png" /><img src="9.png" />
+    </div>
+
     <div id="root"></div>
 
     <script type="text/babel">
+        // --- URL เดิม ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -60,18 +70,6 @@
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
             const branchRef = useRef(""); 
-
-            // --- 1. Preload Images (โหลดรูปมารอไว้เลย) ---
-            useEffect(() => {
-                const imagesToPreload = [
-                    'logo.png', 'shake_item.png',
-                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
-                ];
-                imagesToPreload.forEach(src => {
-                    const img = new Image();
-                    img.src = src;
-                });
-            }, []);
 
             // --- ระบบ Auto Redirect ---
             useEffect(() => {
@@ -120,8 +118,10 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "คำอวยพรมาตรฐาน";
+                    // *** แก้ไขข้อความ Default ให้มี \n ***
+                    const defaultText = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
+                    setAiAnalysis(defaultText);
+                    return defaultText;
                 }
                 
                 setIsAnalyzing(true);
@@ -171,7 +171,6 @@
             };
 
             const getImageFile = async () => {
-                // *** 2. เอา timestamp ออก เพื่อให้ใช้ cache ของ Browser ***
                 const response = await fetch(selectedFortune.image);
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
@@ -233,120 +232,4 @@
             };
 
             return (
-                <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white relative overflow-hidden">
-                    
-                    <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
-                        <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
-                    </div>
-
-                    <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
-                        
-                        {step !== 'result' && (
-                            <div className="text-center mb-2 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
-                                <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
-                            </div>
-                        )}
-
-                        {step === 'branch' && (
-                            <div className="animate-fade-in w-full flex-grow flex flex-col justify-center">
-                                <h2 className="text-xl text-center mb-5 font-bold">เลือกสาขาที่ท่านใช้บริการ</h2>
-                                <div className="space-y-3">
-                                    {BRANCHES.map(branch => (
-                                        <button 
-                                            key={branch}
-                                            onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
-                                            className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
-                                        >
-                                            {branch}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 'shake' && (
-                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
-                                <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
-                                    <img 
-                                        src="shake_item.png" 
-                                        alt="Shake Item" 
-                                        className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
-                                    />
-                                </div>
-                                
-                                <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
-                                    <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
-                                        ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
-                                    </p>
-                                    <button 
-                                        onClick={handleShake}
-                                        disabled={isShaking}
-                                        className="w-[80%] max-w-[280px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
-                                    >
-                                        {isShaking ? '...' : 'เขย่าเลย!'}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {step === 'result' && selectedFortune && (
-                            <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
-                                
-                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
-                                     <img 
-                                        src={selectedFortune.image} 
-                                        alt={selectedFortune.title} 
-                                        className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
-                                    />
-                                </div>
-
-                                <div className="w-full flex-shrink-0">
-                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        <p className="text-yellow-100 italic text-xs leading-tight">
-                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex gap-2 w-full mb-0.5 relative z-10">
-                                        <button 
-                                            onClick={handleDownload}
-                                            disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
-                                        >
-                                            {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
-                                            {isProcessing ? '...' : 'บันทึกภาพ'}
-                                        </button>
-                                        <button 
-                                            onClick={handleNativeShare}
-                                            disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-1.5 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
-                                        >
-                                            {isProcessing ? <Icons.Loader /> : <Icons.Share />}
-                                            {isProcessing ? '...' : 'แชร์'}
-                                        </button>
-                                    </div>
-
-                                    <button 
-                                        onClick={() => window.location.reload()}
-                                        className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
-                                    >
-                                        เล่นใหม่อีกครั้ง
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
-                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                <div className="h-[100dvh] w-full flex flex-col
