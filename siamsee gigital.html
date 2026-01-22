@@ -5,6 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
+    <script>
+        (function() {
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var isLine = /Line/i.test(userAgent);
+            if (isLine) {
+                var url = new URL(window.location.href);
+                if (!url.searchParams.has('openExternalBrowser')) {
+                    url.searchParams.set('openExternalBrowser', '1');
+                    window.location.replace(url.toString());
+                }
+            }
+        })();
+    </script>
+
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -22,8 +36,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL เดิม ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
         const GEMINI_API_KEY = ""; 
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
@@ -58,25 +71,25 @@
             const [isProcessing, setIsProcessing] = useState(false);
             
             const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const targetFortuneRef = useRef(null); 
+            const branchRef = useRef(""); 
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
-            const branchRef = useRef(""); 
+            const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
-            // --- ระบบ Auto Redirect ---
             useEffect(() => {
-                const isLine = /Line/i.test(navigator.userAgent);
-                if (isLine) {
-                    const currentUrl = new URL(window.location.href);
-                    if (!currentUrl.searchParams.has('openExternalBrowser')) {
-                        currentUrl.searchParams.set('openExternalBrowser', '1');
-                        window.location.replace(currentUrl.toString());
-                    }
+                const params = new URLSearchParams(window.location.search);
+                const fortuneId = parseInt(params.get('fortune'));
+                if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
+                    targetFortuneRef.current = fortuneId;
+                    setDebugFortuneId(fortuneId);
                 }
             }, []);
 
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
+                    if (!event.accelerationIncludingGravity) return;
                     const { x, y, z } = event.accelerationIncludingGravity;
                     const acc = accelerationRef.current;
                     const deltaX = Math.abs(x - acc.x);
@@ -91,25 +104,27 @@
                 return () => window.removeEventListener('devicemotion', handleMotion);
             }, [step, isShaking]);
 
-            const saveToGoogleSheets = (actionType, fortune, aiText) => {
+            const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
+                const branchToSend = branchName || branchRef.current || selectedBranch;
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        sheetName: "Offline", 
                         sessionId: sessionId.current,
-                        branch: selectedBranch,
+                        branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
                         action: actionType 
                     })
-                }).then(() => console.log(`Action saved: ${actionType}`));
+                }).then(() => console.log(`Action saved: ${actionType} | AI: ${aiText}`));
             };
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
                     setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "คำอวยพรมาตรฐาน";
+                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)";
                 }
                 
                 setIsAnalyzing(true);
@@ -126,8 +141,9 @@
                     return resultText;
                 } catch (error) {
                     console.error("AI Error", error);
-                    setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
-                    return "Error API";
+                    const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
+                    setAiAnalysis(errorText);
+                    return errorText;
                 } finally {
                     setIsAnalyzing(false);
                 }
@@ -137,15 +153,37 @@
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
+
                 setSelectedBranch(branch);
-                branchRef.current = branch;
-                setStep('shake');
+                branchRef.current = branch; 
+                
+                const lockedFortuneId = targetFortuneRef.current;
+                let fortuneToShow = null;
+
+                if (lockedFortuneId) {
+                    fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
+                } else {
+                    fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+                }
+
+                if (fortuneToShow) {
+                    setSelectedFortune(fortuneToShow);
+                    setStep('result');
+                    saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
+                    const aiResult = await fetchAiContent(fortuneToShow);
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
+                    }
+                } else {
+                    setStep('shake');
+                }
             };
 
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
                 }
+                
                 setIsShaking(true);
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
@@ -153,8 +191,12 @@
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
+                    
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
                     const aiResult = await fetchAiContent(randomFortune);
-                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult);
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
+                    }
                 }, 2000);
             };
 
@@ -179,7 +221,7 @@
                     document.body.appendChild(link);
                     link.click();
                     
-                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
+                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
                     
                     setTimeout(() => {
                         document.body.removeChild(link);
@@ -199,14 +241,13 @@
 
                 try {
                     const file = await getImageFile();
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             title: 'เซียมซีดิจิทัล Honda Maliwan',
                             text: `ฉันได้เซียมซี "${selectedFortune.title}" เฮงมาก! 🎉`,
                             files: [file]
                         });
-                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
+                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis, branchRef.current);
                     } else {
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
                         setIsProcessing(false); 
@@ -232,6 +273,11 @@
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
+                                {debugFortuneId && (
+                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -242,7 +288,7 @@
                                     {BRANCHES.map(branch => (
                                         <button 
                                             key={branch}
-                                            onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
+                                            onClick={() => handleBranchSelect(branch)}
                                             className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
                                         >
                                             {branch}
@@ -277,11 +323,11 @@
                         )}
 
                         {step === 'result' && selectedFortune && (
-                            // หน้าผลลัพธ์: ปรับ pb-1 เพื่อลดพื้นที่ด้านล่างสุด
+                            // หน้าผลลัพธ์: ดันภาพขึ้นด้วย -mt-5
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
                                 
-                                {/* ส่วนรูปภาพ: ใช้ mt-0 เพื่อดันขึ้นบนสุด และ mb-1 เพื่อเว้นระยะห่างจากด้านล่างเล็กน้อย */}
-                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
+                                {/* ส่วนรูปภาพ: ใช้ -mt-5 เพื่อดันขึ้นไปในพื้นที่ว่างด้านบนสุด */}
+                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 -mt-5 mb-1">
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
@@ -289,7 +335,7 @@
                                     />
                                 </div>
 
-                                {/* ส่วนล่าง: คงเดิมแบบกระชับ (Compact Mode) */}
+                                {/* ส่วนล่าง: Compact Mode */}
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
                                         <p className="text-yellow-100 italic text-xs leading-tight">
@@ -320,7 +366,7 @@
                                         onClick={() => window.location.reload()}
                                         className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
                                     >
-                                        เล่นใหม่อีกครั้ง
+                                        สแกนใหม่อีกครั้ง
                                     </button>
                                 </div>
                             </div>
