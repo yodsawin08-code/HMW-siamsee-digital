@@ -33,6 +33,15 @@
     </style>
 </head>
 <body class="bg-red-950">
+    
+    <div style="display:none; visibility:hidden; width:0; height:0; overflow:hidden;">
+        <img src="logo.png" />
+        <img src="shake_item.png" />
+        <img src="1.png" /><img src="2.png" /><img src="3.png" />
+        <img src="4.png" /><img src="5.png" /><img src="6.png" />
+        <img src="7.png" /><img src="8.png" /><img src="9.png" />
+    </div>
+
     <div id="root"></div>
 
     <script type="text/babel">
@@ -77,18 +86,6 @@
             const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
-            // --- 1. Preload Images (โหลดรูปมารอไว้เลย) ---
-            useEffect(() => {
-                const imagesToPreload = [
-                    'logo.png', 'shake_item.png',
-                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
-                ];
-                imagesToPreload.forEach(src => {
-                    const img = new Image();
-                    img.src = src;
-                });
-            }, []);
-
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
@@ -98,6 +95,7 @@
                 }
             }, []);
 
+            // Handle Motion for Shake
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
@@ -135,8 +133,10 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
-                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)";
+                    // *** 3. แก้ไขข้อความ Default ให้มี \n ***
+                    const defaultText = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
+                    setAiAnalysis(defaultText);
+                    return defaultText;
                 }
                 
                 setIsAnalyzing(true);
@@ -213,7 +213,6 @@
             };
 
             const getImageFile = async () => {
-                // *** 2. เอา timestamp ออก เพื่อให้ใช้ cache ของ Browser ***
                 const response = await fetch(selectedFortune.image);
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
@@ -349,7 +348,8 @@
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        <p className="text-yellow-100 italic text-xs leading-tight">
+                                        {/* *** 4. เพิ่ม whitespace-pre-line เพื่อรองรับ \n *** */}
+                                        <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
                                     </div>
