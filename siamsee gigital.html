@@ -5,18 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <link rel="preload" as="image" href="logo.png">
-    <link rel="preload" as="image" href="shake_item.png">
-    <link rel="preload" as="image" href="1.png">
-    <link rel="preload" as="image" href="2.png">
-    <link rel="preload" as="image" href="3.png">
-    <link rel="preload" as="image" href="4.png">
-    <link rel="preload" as="image" href="5.png">
-    <link rel="preload" as="image" href="6.png">
-    <link rel="preload" as="image" href="7.png">
-    <link rel="preload" as="image" href="8.png">
-    <link rel="preload" as="image" href="9.png">
+    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
+    <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
+    <link rel="preload" as="image" href="1.png" fetchpriority="high">
+    <link rel="preload" as="image" href="2.png" fetchpriority="high">
+    <link rel="preload" as="image" href="3.png" fetchpriority="high">
+    <link rel="preload" as="image" href="4.png" fetchpriority="high">
+    <link rel="preload" as="image" href="5.png" fetchpriority="high">
+    <link rel="preload" as="image" href="6.png" fetchpriority="high">
+    <link rel="preload" as="image" href="7.png" fetchpriority="high">
+    <link rel="preload" as="image" href="8.png" fetchpriority="high">
+    <link rel="preload" as="image" href="9.png" fetchpriority="high">
     
+    <script>
+        // *** 2. บังคับโหลดเข้า RAM ทันที ***
+        (function() {
+            var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
+            images.forEach(function(src) {
+                new Image().src = src;
+            });
+        })();
+    </script>
+
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -34,7 +44,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL เดิม ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -73,18 +82,6 @@
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
             const branchRef = useRef(""); 
-
-            // --- 1. Preload Images ---
-            useEffect(() => {
-                const imagesToPreload = [
-                    'logo.png', 'shake_item.png',
-                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
-                ];
-                imagesToPreload.forEach(src => {
-                    const img = new Image();
-                    img.src = src;
-                });
-            }, []);
 
             // --- ระบบ Auto Redirect ---
             useEffect(() => {
@@ -133,6 +130,7 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
+                    // *** แก้ไขข้อความ ***
                     const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
                     setAiAnalysis(defaultMsg);
                     return defaultMsg;
@@ -318,12 +316,16 @@
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
+                                        loading="eager"
+                                        decoding="sync"
+                                        fetchpriority="high"
                                         className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
                                     />
                                 </div>
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
+                                        {/* *** เพิ่ม whitespace-pre-line เพื่อรองรับ \n *** */}
                                         <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
