@@ -307,7 +307,6 @@
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
-                                
                                 <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
                                     <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
@@ -324,11 +323,11 @@
                         )}
 
                         {step === 'result' && selectedFortune && (
-                            // หน้าผลลัพธ์: ปรับ pb-1 เพื่อลดพื้นที่ด้านล่างสุด
+                            // หน้าผลลัพธ์: ดันภาพขึ้นด้วย -mt-5
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
                                 
-                                {/* ส่วนรูปภาพ: ใช้ mt-0 เพื่อดันขึ้นบนสุด และ mb-1 เพื่อเว้นระยะห่างจากด้านล่างเล็กน้อย */}
-                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
+                                {/* ส่วนรูปภาพ: ใช้ -mt-5 เพื่อดันขึ้นไปในพื้นที่ว่างด้านบนสุด */}
+                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 -mt-5 mb-1">
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
@@ -336,7 +335,7 @@
                                     />
                                 </div>
 
-                                {/* ส่วนล่าง: คงเดิมแบบกระชับ (Compact Mode) */}
+                                {/* ส่วนล่าง: Compact Mode */}
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
                                         <p className="text-yellow-100 italic text-xs leading-tight">
