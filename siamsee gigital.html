@@ -22,7 +22,6 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- URL เดิม ---
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
         const GEMINI_API_KEY = ""; 
         
@@ -62,6 +61,18 @@
             const SHAKE_THRESHOLD = 15;
             const branchRef = useRef(""); 
 
+            // --- 1. Preload Images (โหลดรูปมารอไว้เลย) ---
+            useEffect(() => {
+                const imagesToPreload = [
+                    'logo.png', 'shake_item.png',
+                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
+                ];
+                imagesToPreload.forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                });
+            }, []);
+
             // --- ระบบ Auto Redirect ---
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
@@ -77,6 +88,7 @@
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
+                    if (!event.accelerationIncludingGravity) return;
                     const { x, y, z } = event.accelerationIncludingGravity;
                     const acc = accelerationRef.current;
                     const deltaX = Math.abs(x - acc.x);
@@ -159,7 +171,8 @@
             };
 
             const getImageFile = async () => {
-                const response = await fetch(selectedFortune.image + '?t=' + new Date().getTime());
+                // *** 2. เอา timestamp ออก เพื่อให้ใช้ cache ของ Browser ***
+                const response = await fetch(selectedFortune.image);
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
                 return new File([blob], `HondaMaliwan_Fortune_${selectedFortune.id}.png`, { type: 'image/png' });
@@ -261,6 +274,7 @@
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
+                                
                                 <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
                                     <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
@@ -277,10 +291,8 @@
                         )}
 
                         {step === 'result' && selectedFortune && (
-                            // หน้าผลลัพธ์: ปรับ pb-1 เพื่อลดพื้นที่ด้านล่างสุด
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
                                 
-                                {/* ส่วนรูปภาพ: ใช้ mt-0 เพื่อดันขึ้นบนสุด และ mb-1 เพื่อเว้นระยะห่างจากด้านล่างเล็กน้อย */}
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
                                      <img 
                                         src={selectedFortune.image} 
@@ -289,7 +301,6 @@
                                     />
                                 </div>
 
-                                {/* ส่วนล่าง: คงเดิมแบบกระชับ (Compact Mode) */}
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
                                         <p className="text-yellow-100 italic text-xs leading-tight">
