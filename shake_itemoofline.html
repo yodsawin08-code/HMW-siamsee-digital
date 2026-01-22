@@ -5,20 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <link rel="preload" as="image" href="logo.png">
-    <link rel="preload" as="image" href="shake_item.png">
-    <link rel="preload" as="image" href="1.png">
-    <link rel="preload" as="image" href="2.png">
-    <link rel="preload" as="image" href="3.png">
-    <link rel="preload" as="image" href="4.png">
-    <link rel="preload" as="image" href="5.png">
-    <link rel="preload" as="image" href="6.png">
-    <link rel="preload" as="image" href="7.png">
-    <link rel="preload" as="image" href="8.png">
-    <link rel="preload" as="image" href="9.png">
+    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
+    <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
+    <link rel="preload" as="image" href="1.png" fetchpriority="high">
+    <link rel="preload" as="image" href="2.png" fetchpriority="high">
+    <link rel="preload" as="image" href="3.png" fetchpriority="high">
+    <link rel="preload" as="image" href="4.png" fetchpriority="high">
+    <link rel="preload" as="image" href="5.png" fetchpriority="high">
+    <link rel="preload" as="image" href="6.png" fetchpriority="high">
+    <link rel="preload" as="image" href="7.png" fetchpriority="high">
+    <link rel="preload" as="image" href="8.png" fetchpriority="high">
+    <link rel="preload" as="image" href="9.png" fetchpriority="high">
 
     <script>
+        // *** 2. บังคับโหลดเข้า RAM ทันที (ก่อน React เริ่มทำงาน) ***
         (function() {
+            var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
+            images.forEach(function(src) {
+                new Image().src = src;
+            });
+
+            // Redirect Line Logic
             var userAgent = navigator.userAgent || navigator.vendor || window.opera;
             var isLine = /Line/i.test(userAgent);
             if (isLine) {
@@ -98,19 +105,16 @@
                 }
             }, []);
 
-            // *** Logic เขย่า (Updated for iOS) ***
+            // Logic เขย่า + iOS
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
-                    // ตรวจสอบว่ามีข้อมูลส่งมาหรือไม่
                     if (!event.accelerationIncludingGravity) return;
-                    
                     const { x, y, z } = event.accelerationIncludingGravity;
                     const acc = accelerationRef.current;
                     const deltaX = Math.abs(x - acc.x);
                     const deltaY = Math.abs(y - acc.y);
                     const deltaZ = Math.abs(z - acc.z);
-                    
                     if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
                         handleShake();
                     }
@@ -166,9 +170,8 @@
                 }
             };
 
-            // *** แก้ไข: ขออนุญาต iOS ทันทีที่กดปุ่มเลือกสาขา ***
             const handleBranchSelect = async (branch) => {
-                // ขออนุญาตเข้าถึง Motion Sensor สำหรับ iOS 13+
+                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try {
                         const permissionState = await DeviceMotionEvent.requestPermission();
@@ -180,7 +183,6 @@
                         console.error("iOS permission error:", e);
                     }
                 }
-
                 setSelectedBranch(branch);
                 branchRef.current = branch; 
                 
@@ -207,11 +209,9 @@
             };
 
             const handleShake = () => {
-                // เผื่อไว้กรณีปุ่มกดเขย่าเอง
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
                 }
-                
                 setIsShaking(true);
                 if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
@@ -229,7 +229,6 @@
             };
 
             const getImageFile = async () => {
-                // ไม่ใช้ Cache Busting (?t=...) เพื่อให้โหลดเร็ว
                 const response = await fetch(selectedFortune.image);
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
@@ -358,6 +357,9 @@
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
+                                        loading="eager"
+                                        decoding="sync"
+                                        fetchpriority="high"
                                         className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
                                     />
                                 </div>
