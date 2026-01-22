@@ -133,7 +133,6 @@
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    // *** 2. แก้ไขข้อความ (เพิ่ม \n) ***
                     const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
                     setAiAnalysis(defaultMsg);
                     return defaultMsg;
@@ -161,8 +160,17 @@
             };
 
             const handleBranchSelect = async (branch) => {
+                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            alert('กรุณากดอนุญาตให้เข้าถึงการเคลื่อนไหวเพื่อเล่นเกม');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("iOS permission error:", e);
+                    }
                 }
                 setSelectedBranch(branch);
                 branchRef.current = branch;
@@ -269,7 +277,7 @@
                                     {BRANCHES.map(branch => (
                                         <button 
                                             key={branch}
-                                            onClick={() => { setSelectedBranch(branch); setStep('shake'); }}
+                                            onClick={() => handleBranchSelect(branch)}
                                             className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
                                         >
                                             {branch}
@@ -316,7 +324,6 @@
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        {/* 3. เพิ่ม whitespace-pre-line */}
                                         <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
