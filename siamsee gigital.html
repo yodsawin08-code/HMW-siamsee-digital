@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
+    <link rel="preload" as="image" href="Pok.webp" fetchpriority="high">
     <link rel="preload" as="image" href="logo.png" fetchpriority="high">
     <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
     <link rel="preload" as="image" href="1.png" fetchpriority="high">
@@ -19,7 +20,7 @@
     
     <script>
         (function() {
-            var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
+            var images = ['Pok.webp', 'logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
             images.forEach(function(src) { new Image().src = src; });
         })();
     </script>
@@ -36,7 +37,7 @@
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         
-        /* Style สำหรับ Dropdown */
+        /* CSS สำหรับ Dropdown */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -46,30 +47,28 @@
             background-position: right 1rem center;
             background-size: 1em;
         }
+
+        /* CSS สำหรับขอบตัวหนังสือ */
+        .text-outline-black {
+            text-shadow: 
+                2px 2px 0 #000,
+                -1px -1px 0 #000,  
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
     </style>
 </head>
-<body class="bg-red-950 text-white">
-    <div id="root" class="h-[100dvh] w-full flex items-center justify-center">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-            <p class="text-yellow-500">กำลังโหลด...</p>
-        </div>
-    </div>
+<body class="bg-red-950">
+    <div id="root"></div>
 
     <script type="text/babel">
-        // *** URL Backend ของ Honda Maliwan ***
+        // *** URL Backend (ใช้ตัวล่าสุด) ***
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
         const GEMINI_API_KEY = ""; 
         
-        // *** ปรับลำดับสาขา: Online อยู่บนสุด ***
-        const BRANCHES = [ 
-            "Online", 
-            "สำนักงานใหญ่ (ขอนแก่น)", 
-            "สุรินทร์", 
-            "บุรีรัมย์", 
-            "นาคา (ภูเก็ต)", 
-            "เมืองกระบี่" 
-        ];
+        // *** ปรับลำดับสาขา Online ขึ้นก่อน ***
+        const BRANCHES = [ "Online", "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
 
         const FORTUNES = [
             { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง', image: '1.png' },
@@ -83,7 +82,7 @@
             { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง', image: '9.png' }
         ];
 
-        // --- คำนวณโปรโมชั่น ---
+        // --- คำนวณโปรโมชั่น (Honda Context) ---
         const getPromotionText = (id) => {
             if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
             if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
@@ -100,7 +99,7 @@
         const { useState, useEffect, useRef } = React;
 
         const App = () => {
-            const [step, setStep] = useState('branch'); // เริ่มต้นที่หน้าเลือกสาขา
+            const [step, setStep] = useState('branch'); 
             const [selectedBranch, setSelectedBranch] = useState("");
             const [isShaking, setIsShaking] = useState(false);
             const [selectedFortune, setSelectedFortune] = useState(null);
@@ -108,24 +107,12 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15));
-            const targetFortuneRef = useRef(null);
-            const branchRef = useRef("");
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const targetFortuneRef = useRef(null); 
+            const branchRef = useRef(""); 
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null);
-
-            // --- Auto Redirect ---
-            useEffect(() => {
-                const isLine = /Line/i.test(navigator.userAgent);
-                if (isLine) {
-                    const currentUrl = new URL(window.location.href);
-                    if (!currentUrl.searchParams.has('openExternalBrowser')) {
-                        currentUrl.searchParams.set('openExternalBrowser', '1');
-                        window.location.replace(currentUrl.toString());
-                    }
-                }
-            }, []);
 
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
@@ -136,24 +123,6 @@
                 }
             }, []);
 
-            useEffect(() => {
-                if (step !== 'shake' || isShaking) return;
-                const handleMotion = (event) => {
-                    if (!event.accelerationIncludingGravity) return;
-                    const { x, y, z } = event.accelerationIncludingGravity;
-                    const acc = accelerationRef.current;
-                    const deltaX = Math.abs(x - acc.x);
-                    const deltaY = Math.abs(y - acc.y);
-                    const deltaZ = Math.abs(z - acc.z);
-                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
-                        handleShake();
-                    }
-                    accelerationRef.current = { x, y, z };
-                };
-                window.addEventListener('devicemotion', handleMotion);
-                return () => window.removeEventListener('devicemotion', handleMotion);
-            }, [step, isShaking]);
-
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
                 const branchToSend = branchName || branchRef.current || selectedBranch;
                 const promoText = fortune ? getPromotionText(fortune.id) : "-";
@@ -163,7 +132,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Online", // *** ระบุชื่อชีท Online ***
+                        sheetName: "Online", 
                         sessionId: sessionId.current,
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
@@ -200,11 +169,11 @@
                 }
             };
 
-            // *** Logic การยืนยันสาขา (มีขออนุญาต iOS) ***
+            // *** Logic ปุ่มยืนยัน (แบบใหม่) ***
             const handleBranchConfirm = async () => {
-                if (!selectedBranch) return;
+                if (!selectedBranch) return; // ต้องเลือกสาขาก่อน
 
-                // ขออนุญาต iOS Motion Sensor
+                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try {
                         const permissionState = await DeviceMotionEvent.requestPermission();
@@ -218,12 +187,26 @@
                 }
                 
                 branchRef.current = selectedBranch;
-                setStep('shake');
+                
+                // ตรวจสอบเลขล็อค
+                const lockedFortuneId = targetFortuneRef.current;
+                if (lockedFortuneId) {
+                    const fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
+                    if (fortuneToShow) {
+                        setSelectedFortune(fortuneToShow);
+                        setStep('result');
+                        saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", selectedBranch);
+                        const aiResult = await fetchAiContent(fortuneToShow);
+                        if (aiResult) saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, selectedBranch);
+                    }
+                } else {
+                    setStep('shake');
+                }
             };
 
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission().catch(console.error);
+                        DeviceMotionEvent.requestPermission().catch(console.error);
                 }
                 setIsShaking(true);
                 if (navigator.vibrate) navigator.vibrate(200);
@@ -290,82 +273,140 @@
                 }
             };
 
+            // ✅ RENDER SECTION
+            if (step === 'branch') {
+                return (
+                    <div 
+                        className="h-[100dvh] w-full bg-cover bg-top bg-no-repeat flex flex-col justify-end items-center relative overflow-hidden"
+                        style={{ backgroundImage: "url('Pok.webp')" }}
+                    >
+                        <div className="z-10 w-full max-w-lg p-6 pb-8 flex flex-col gap-4 animate-fade-in relative">
+                             <h2 className="text-xl text-center font-bold text-white text-outline-black whitespace-nowrap">
+                                เลือกสาขาที่ท่านใช้บริการ
+                             </h2>
+
+                             <div className="relative w-full">
+                                <select
+                                    value={selectedBranch}
+                                    onChange={(e) => setSelectedBranch(e.target.value)}
+                                    className="w-full p-4 bg-white/90 border-2 border-yellow-500 rounded-2xl text-red-900 text-lg font-bold focus:outline-none focus:border-red-600 pl-4 pr-10 text-center truncate shadow-lg"
+                                >
+                                    <option value="" disabled>-- กรุณาเลือก --</option>
+                                    {BRANCHES.map(branch => (
+                                        <option key={branch} value={branch}>
+                                            {branch}
+                                        </option>
+                                    ))}
+                                </select>
+                             </div>
+
+                             <button
+                                onClick={handleBranchConfirm}
+                                disabled={!selectedBranch}
+                                className={`w-full py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-xl shadow-xl border-2 border-yellow-300 transition transform ${!selectedBranch ? 'opacity-70 cursor-not-allowed grayscale' : 'hover:scale-105 active:scale-95'}`}
+                            >
+                                ยืนยัน
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // Step 2 & 3: Shake & Result
             return (
-                <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+                <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white relative overflow-hidden bg-red-950">
+                    
                     <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
                         <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
                     </div>
 
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
                         
-                        {/* 1. หน้าเลือกสาขาแบบใหม่ (เหมือนตัวอย่าง) */}
-                        {step === 'branch' && (
-                            <div className="w-full flex-grow flex flex-col justify-center items-center gap-6 animate-fade-in">
-                                <div className="text-center mb-4">
-                                    <img src="logo.png" alt="HONDA MALIWAN" className="h-20 mx-auto mb-4 drop-shadow-lg" />
-                                    <h2 className="text-2xl font-bold text-yellow-400 drop-shadow-md">
-                                        เลือกสาขาที่ท่านใช้บริการ
-                                    </h2>
-                                </div>
-
-                                <div className="w-full px-4">
-                                    <select
-                                        value={selectedBranch}
-                                        onChange={(e) => setSelectedBranch(e.target.value)}
-                                        className="w-full p-4 bg-white/90 border-2 border-yellow-500 rounded-2xl text-red-900 text-lg font-bold focus:outline-none focus:border-red-600 pl-4 pr-10 text-center shadow-lg truncate"
-                                    >
-                                        <option value="" disabled>-- กรุณาเลือก --</option>
-                                        {BRANCHES.map(branch => (
-                                            <option key={branch} value={branch}>
-                                                {branch}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <button
-                                    onClick={handleBranchConfirm}
-                                    disabled={!selectedBranch}
-                                    className={`w-[80%] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-2xl shadow-xl border-2 border-yellow-300 transition transform ${!selectedBranch ? 'opacity-70 cursor-not-allowed grayscale' : 'hover:scale-105 active:scale-95'}`}
-                                >
-                                    ยืนยัน
-                                </button>
-                            </div>
-                        )}
-
-                        {/* 2. หน้าเขย่า (Shake) */}
                         {step === 'shake' && (
-                            <div className="flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
+                            <div className="text-center mb-2 animate-fade-in flex-shrink-0">
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
+                                <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
+                            </div>
+                        )}
+
+                        {step === 'shake' && (
+                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
-                                    <img src="shake_item.png" className={`h-full w-auto max-w-full object-contain ${isShaking ? 'shake-animation' : ''}`} />
+                                    <img 
+                                        src="shake_item.png" 
+                                        alt="Shake Item" 
+                                        className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
+                                    />
                                 </div>
-                                <div className="flex-shrink-0 w-full flex flex-col items-center pb-4">
-                                    <p className="text-[3dvh] mb-4 font-bold text-yellow-100 text-center">ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า</p>
-                                    <button onClick={handleShake} disabled={isShaking} className="w-[80%] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg active:scale-95">{isShaking ? '...' : 'เขย่าเลย!'}</button>
+                                <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
+                                    <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
+                                        ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
+                                    </p>
+                                    <button 
+                                        onClick={handleShake}
+                                        disabled={isShaking}
+                                        className="w-[80%] max-w-[280px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                    >
+                                        {isShaking ? '...' : 'เขย่าเลย!'}
+                                    </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* 3. หน้าผลลัพธ์ (Result) */}
                         {step === 'result' && selectedFortune && (
-                            <div className="flex-grow flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
+                            <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
+                                
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
-                                     <img src={selectedFortune.image} className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500" />
+                                     <img 
+                                        src={selectedFortune.image} 
+                                        alt={selectedFortune.title} 
+                                        loading="eager"
+                                        decoding="sync"
+                                        fetchpriority="high"
+                                        className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
+                                    />
                                 </div>
+
                                 <div className="w-full flex-shrink-0">
-                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 text-center">
-                                        <p className="text-yellow-100 italic text-xs whitespace-pre-line">{isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : aiAnalysis}</p>
+                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
+                                        <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
+                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
+                                        </p>
                                     </div>
-                                    <div className="flex gap-2 w-full mb-0.5">
-                                        <button onClick={handleDownload} disabled={isProcessing} className="flex-1 flex justify-center items-center gap-1 bg-white/10 py-1.5 rounded-xl font-bold border border-white/30 text-xs">{isProcessing ? <Icons.Loader /> : <Icons.Download />} บันทึก</button>
-                                        <button onClick={handleNativeShare} disabled={isProcessing} className="flex-1 flex justify-center items-center gap-1 bg-yellow-500 text-red-900 py-1.5 rounded-xl font-bold text-xs">{isProcessing ? <Icons.Loader /> : <Icons.Share />} แชร์</button>
+
+                                    <div className="flex gap-2 w-full mb-0.5 relative z-10">
+                                        <button 
+                                            onClick={handleDownload}
+                                            disabled={isProcessing}
+                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
+                                        >
+                                            {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
+                                            {isProcessing ? '...' : 'บันทึกภาพ'}
+                                        </button>
+                                        <button 
+                                            onClick={handleNativeShare}
+                                            disabled={isProcessing}
+                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-1.5 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
+                                        >
+                                            {isProcessing ? <Icons.Loader /> : <Icons.Share />}
+                                            {isProcessing ? '...' : 'แชร์'}
+                                        </button>
                                     </div>
-                                    <button onClick={() => window.location.reload()} className="text-yellow-400 underline text-[10px] w-full py-1">เล่นใหม่อีกครั้ง</button>
+
+                                    <button 
+                                        onClick={() => window.location.reload()}
+                                        className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
+                                    >
+                                        เล่นใหม่อีกครั้ง
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
-                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 w-full pointer-events-none">© 2026 Honda Maliwan | Powered by Gemini & Google Sheets</div>
+                    
+                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
+                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
+                    </div>
                 </div>
             );
         };
