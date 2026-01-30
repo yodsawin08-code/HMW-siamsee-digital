@@ -5,18 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <link rel="preload" as="image" href="logo.png">
-    <link rel="preload" as="image" href="shake_item.png">
-    <link rel="preload" as="image" href="1.png">
-    <link rel="preload" as="image" href="2.png">
-    <link rel="preload" as="image" href="3.png">
-    <link rel="preload" as="image" href="4.png">
-    <link rel="preload" as="image" href="5.png">
-    <link rel="preload" as="image" href="6.png">
-    <link rel="preload" as="image" href="7.png">
-    <link rel="preload" as="image" href="8.png">
-    <link rel="preload" as="image" href="9.png">
+    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
+    <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
+    <link rel="preload" as="image" href="1.png" fetchpriority="high">
+    <link rel="preload" as="image" href="2.png" fetchpriority="high">
+    <link rel="preload" as="image" href="3.png" fetchpriority="high">
+    <link rel="preload" as="image" href="4.png" fetchpriority="high">
+    <link rel="preload" as="image" href="5.png" fetchpriority="high">
+    <link rel="preload" as="image" href="6.png" fetchpriority="high">
+    <link rel="preload" as="image" href="7.png" fetchpriority="high">
+    <link rel="preload" as="image" href="8.png" fetchpriority="high">
+    <link rel="preload" as="image" href="9.png" fetchpriority="high">
     
+    <script>
+        (function() {
+            var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
+            images.forEach(function(src) { new Image().src = src; });
+        })();
+    </script>
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -39,8 +46,8 @@
     </div>
 
     <script type="text/babel">
-        // --- Configuration ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5ceIJp59kiCD0flYiySSLwZe5lrJhWV9isxZlveZnhEihCM7aNltOomPmKc2W8ryq_w/exec"; 
+        // *** URL Backend ใหม่ ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
         const GEMINI_API_KEY = ""; 
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
@@ -56,7 +63,7 @@
             { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง', image: '9.png' }
         ];
 
-        // --- Helper Function: คำนวณโปรโมชั่น ---
+        // --- คำนวณโปรโมชั่น ---
         const getPromotionText = (id) => {
             if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
             if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
@@ -88,7 +95,16 @@
             const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null);
 
-            // --- Auto Redirect Logic ---
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const fortuneId = parseInt(params.get('fortune'));
+                if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
+                    targetFortuneRef.current = fortuneId;
+                    setDebugFortuneId(fortuneId);
+                }
+            }, []);
+
+            // --- Auto Redirect (สำหรับ Online) ---
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
@@ -127,7 +143,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline",
+                        sheetName: "Online", // *** ระบุชื่อชีท Online ***
                         sessionId: sessionId.current,
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
@@ -165,7 +181,6 @@
             };
 
             const handleBranchSelect = async (branch) => {
-                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
@@ -255,6 +270,11 @@
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
+                                {debugFortuneId && (
+                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
