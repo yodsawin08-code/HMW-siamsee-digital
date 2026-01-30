@@ -52,8 +52,8 @@
     </div>
 
     <script type="text/babel">
-        // --- Configuration ---
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5ceIJp59kiCD0flYiySSLwZe5lrJhWV9isxZlveZnhEihCM7aNltOomPmKc2W8ryq_w/exec"; 
+        // *** URL Backend ใหม่ ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
         const GEMINI_API_KEY = ""; 
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
@@ -69,7 +69,7 @@
             { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง', image: '9.png' }
         ];
 
-        // --- Helper Function: คำนวณโปรโมชั่น ---
+        // --- คำนวณโปรโมชั่น ---
         const getPromotionText = (id) => {
             if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
             if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
@@ -138,7 +138,7 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline",
+                        sheetName: "Offline", // *** ระบุชื่อชีท Offline ***
                         sessionId: sessionId.current,
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
@@ -176,7 +176,6 @@
             };
 
             const handleBranchSelect = async (branch) => {
-                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
