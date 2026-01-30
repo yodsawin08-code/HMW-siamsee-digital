@@ -20,9 +20,17 @@
     
     <script>
         (function() {
-            // โหลดรูปรอไว้ใน RAM
             var images = ['Pok.webp', 'logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
             images.forEach(function(src) { new Image().src = src; });
+
+            var isLine = /Line/i.test(navigator.userAgent);
+            if (isLine) {
+                var url = new URL(window.location.href);
+                if (!url.searchParams.has('openExternalBrowser')) {
+                    url.searchParams.set('openExternalBrowser', '1');
+                    window.location.replace(url.toString());
+                }
+            }
         })();
     </script>
 
@@ -38,7 +46,6 @@
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         
-        /* CSS สำหรับ Dropdown (ลูกศรสีเหลือง) */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -49,15 +56,19 @@
             background-size: 1em;
         }
 
-        /* ขอบตัวหนังสือสีดำ */
         .text-outline-black {
             text-shadow: 
                 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
     </style>
 </head>
-<body class="bg-red-950">
-    <div id="root"></div>
+<body class="bg-red-950 text-white">
+    <div id="root" class="h-[100dvh] w-full flex items-center justify-center">
+        <div class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
+            <p class="text-yellow-500">กำลังโหลด...</p>
+        </div>
+    </div>
 
     <script type="text/babel">
         // *** URL Backend ของ Honda Maliwan ***
