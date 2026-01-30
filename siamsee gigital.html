@@ -18,12 +18,9 @@
     <link rel="preload" as="image" href="9.png" fetchpriority="high">
     
     <script>
-        // *** 2. บังคับโหลดเข้า RAM ทันที ***
         (function() {
             var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
-            images.forEach(function(src) {
-                new Image().src = src;
-            });
+            images.forEach(function(src) { new Image().src = src; });
         })();
     </script>
 
@@ -44,7 +41,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybKynjAWRiCr5-6Cn66tBUrCU6AoMWxyoGuQeKg3gsJI92_zvchCC1Jw7Wf7QZIWyqEg/exec"; 
+        // *** อัปเดต URL ใหม่ตรงนี้ครับ ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5ceIJp59kiCD0flYiySSLwZe5lrJhWV9isxZlveZnhEihCM7aNltOomPmKc2W8ryq_w/exec"; 
         const GEMINI_API_KEY = ""; 
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
@@ -83,7 +81,7 @@
             const SHAKE_THRESHOLD = 15;
             const branchRef = useRef(""); 
 
-            // --- ระบบ Auto Redirect ---
+            // --- Auto Redirect ---
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
@@ -113,29 +111,39 @@
                 return () => window.removeEventListener('devicemotion', handleMotion);
             }, [step, isShaking]);
 
-            const saveToGoogleSheets = (actionType, fortune, aiText) => {
+            // --- คำนวณโปรโมชั่น ---
+            const getPromotionText = (id) => {
+                if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
+                if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
+                if (id === 9) return "รับส่วนลด 300 บาท บริการเคลือบสี";
+                return "-";
+            };
+
+            const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
+                const branchToSend = branchName || branchRef.current || selectedBranch;
+                const promoText = fortune ? getPromotionText(fortune.id) : "-";
+
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         sessionId: sessionId.current,
-                        branch: selectedBranch,
+                        branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
-                        action: actionType 
+                        action: actionType,
+                        promotion: promoText 
                     })
                 }).then(() => console.log(`Action saved: ${actionType}`));
             };
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    // *** แก้ไขข้อความ ***
                     const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
                     setAiAnalysis(defaultMsg);
                     return defaultMsg;
                 }
-                
                 setIsAnalyzing(true);
                 try {
                     const prompt = `วิเคราะห์เซียมซีใบที่ ${fortune.id} หัวข้อ "${fortune.title}" รายละเอียด "${fortune.detail}" สำหรับลูกค้า Honda Maliwan สาขา ${selectedBranch} ขอคำอวยพรสั้นๆ 1 ประโยคที่เป็นมงคล`;
@@ -149,7 +157,6 @@
                     setAiAnalysis(resultText);
                     return resultText;
                 } catch (error) {
-                    console.error("AI Error", error);
                     setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
                     return "Error API";
                 } finally {
@@ -158,17 +165,8 @@
             };
 
             const handleBranchSelect = async (branch) => {
-                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try {
-                        const permissionState = await DeviceMotionEvent.requestPermission();
-                        if (permissionState !== 'granted') {
-                            alert('กรุณากดอนุญาตให้เข้าถึงการเคลื่อนไหวเพื่อเล่นเกม');
-                            return;
-                        }
-                    } catch (e) {
-                        console.error("iOS permission error:", e);
-                    }
+                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
                 setSelectedBranch(branch);
                 branchRef.current = branch;
@@ -201,7 +199,6 @@
             const handleDownload = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
-
                 try {
                     const file = await getImageFile();
                     const url = window.URL.createObjectURL(file);
@@ -211,16 +208,13 @@
                     link.download = file.name;
                     document.body.appendChild(link);
                     link.click();
-                    
-                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis);
-                    
+                    saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
                     setTimeout(() => {
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         setIsProcessing(false);
                     }, 2000); 
                 } catch (err) {
-                    console.error("Download failed:", err);
                     setIsProcessing(false);
                     window.open(selectedFortune.image, '_blank');
                 }
@@ -229,17 +223,15 @@
             const handleNativeShare = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
-
                 try {
                     const file = await getImageFile();
-
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
                             title: 'เซียมซีดิจิทัล Honda Maliwan',
                             text: `ฉันได้เซียมซี "${selectedFortune.title}" เฮงมาก! 🎉`,
                             files: [file]
                         });
-                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis);
+                        saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis, branchRef.current);
                     } else {
                         alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
                         setIsProcessing(false); 
@@ -254,17 +246,20 @@
 
             return (
                 <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white relative overflow-hidden">
-                    
                     <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
                         <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
                     </div>
 
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
-                        
                         {step !== 'result' && (
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
+                                {debugFortuneId && (
+                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -311,7 +306,6 @@
 
                         {step === 'result' && selectedFortune && (
                             <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
-                                
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
                                      <img 
                                         src={selectedFortune.image} 
@@ -325,7 +319,6 @@
 
                                 <div className="w-full flex-shrink-0">
                                     <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        {/* *** เพิ่ม whitespace-pre-line เพื่อรองรับ \n *** */}
                                         <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
                                             {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
                                         </p>
@@ -362,6 +355,7 @@
                     </div>
                     
                     <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
+                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
                     </div>
                 </div>
             );
@@ -372,4 +366,3 @@
     </script>
 </body>
 </html>
-
