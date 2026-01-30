@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <link rel="preload" as="image" href="logo.png">
-    <link rel="preload" as="image" href="shake_item.png">
-    <link rel="preload" as="image" href="1.png">
-    <link rel="preload" as="image" href="2.png">
-    <link rel="preload" as="image" href="3.png">
-    <link rel="preload" as="image" href="4.png">
-    <link rel="preload" as="image" href="5.png">
-    <link rel="preload" as="image" href="6.png">
-    <link rel="preload" as="image" href="7.png">
-    <link rel="preload" as="image" href="8.png">
-    <link rel="preload" as="image" href="9.png">
+    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
+    <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
+    <link rel="preload" as="image" href="1.png" fetchpriority="high">
+    <link rel="preload" as="image" href="2.png" fetchpriority="high">
+    <link rel="preload" as="image" href="3.png" fetchpriority="high">
+    <link rel="preload" as="image" href="4.png" fetchpriority="high">
+    <link rel="preload" as="image" href="5.png" fetchpriority="high">
+    <link rel="preload" as="image" href="6.png" fetchpriority="high">
+    <link rel="preload" as="image" href="7.png" fetchpriority="high">
+    <link rel="preload" as="image" href="8.png" fetchpriority="high">
+    <link rel="preload" as="image" href="9.png" fetchpriority="high">
 
     <script>
         (function() {
@@ -53,7 +53,7 @@
 
     <script type="text/babel">
         // *** URL Backend ใหม่ ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
         const GEMINI_API_KEY = ""; 
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
@@ -86,7 +86,7 @@
         const { useState, useEffect, useRef } = React;
 
         const App = () => {
-            const [step, setStep] = useState('branch');
+            const [step, setStep] = useState('branch'); 
             const [selectedBranch, setSelectedBranch] = useState("");
             const [isShaking, setIsShaking] = useState(false);
             const [selectedFortune, setSelectedFortune] = useState(null);
@@ -94,12 +94,12 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15));
-            const targetFortuneRef = useRef(null);
-            const branchRef = useRef("");
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const targetFortuneRef = useRef(null); 
+            const branchRef = useRef(""); 
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
-            const [debugFortuneId, setDebugFortuneId] = useState(null);
+            const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
@@ -108,6 +108,18 @@
                     targetFortuneRef.current = fortuneId;
                     setDebugFortuneId(fortuneId);
                 }
+            }, []);
+
+            // --- 1. Preload Images ---
+            useEffect(() => {
+                const imagesToPreload = [
+                    'logo.png', 'shake_item.png',
+                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
+                ];
+                imagesToPreload.forEach(src => {
+                    const img = new Image();
+                    img.src = src;
+                });
             }, []);
 
             // --- Logic เขย่า (iOS Compatible) ---
@@ -138,15 +150,15 @@
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        sheetName: "Offline", // *** ระบุชื่อชีท Offline ***
+                        sheetName: "Offline", 
                         sessionId: sessionId.current,
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
                         action: actionType,
-                        promotion: promoText
+                        promotion: promoText 
                     })
-                }).catch(err => console.error("Sheet Error:", err));
+                }).then(() => console.log(`Action saved: ${actionType}`));
             };
 
             const fetchAiContent = async (fortune) => {
@@ -155,9 +167,10 @@
                     setAiAnalysis(defaultMsg);
                     return defaultMsg;
                 }
+                
                 setIsAnalyzing(true);
                 try {
-                    const prompt = `ขอคำอวยพรสั้นๆสำหรับเซียมซีใบที่ ${fortune.id} ${fortune.title}`;
+                    const prompt = `วิเคราะห์เซียมซีใบที่ ${fortune.id} หัวข้อ "${fortune.title}" รายละเอียด "${fortune.detail}" สำหรับลูกค้า Honda Maliwan สาขา ${selectedBranch} ขอคำอวยพรสั้นๆ 1 ประโยคที่เป็นมงคล`;
                     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -180,17 +193,24 @@
                     try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
                 }
                 setSelectedBranch(branch);
-                branchRef.current = branch;
+                branchRef.current = branch; 
                 
                 const lockedFortuneId = targetFortuneRef.current;
+                let fortuneToShow = null;
+
                 if (lockedFortuneId) {
-                    const fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
-                    if (fortuneToShow) {
-                        setSelectedFortune(fortuneToShow);
-                        setStep('result');
-                        saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
-                        const aiResult = await fetchAiContent(fortuneToShow);
-                        if (aiResult) saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
+                    fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
+                } else {
+                    fortuneToShow = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+                }
+
+                if (fortuneToShow) {
+                    setSelectedFortune(fortuneToShow);
+                    setStep('result');
+                    saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
+                    const aiResult = await fetchAiContent(fortuneToShow);
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
                     }
                 } else {
                     setStep('shake');
@@ -199,23 +219,23 @@
 
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission().catch(console.error);
+                        DeviceMotionEvent.requestPermission().catch(console.error);
                 }
                 setIsShaking(true);
-                if (navigator.vibrate) navigator.vibrate(200);
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
                     setIsShaking(false);
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
-                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
                     const aiResult = await fetchAiContent(randomFortune);
-                    if (aiResult) saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult);
                 }, 2000);
             };
 
             const getImageFile = async () => {
                 const response = await fetch(selectedFortune.image);
+                if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
                 return new File([blob], `HondaMaliwan_Fortune_${selectedFortune.id}.png`, { type: 'image/png' });
             };
@@ -223,10 +243,12 @@
             const handleDownload = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
+
                 try {
                     const file = await getImageFile();
                     const url = window.URL.createObjectURL(file);
                     const link = document.createElement('a');
+                    link.style.display = 'none';
                     link.href = url;
                     link.download = file.name;
                     document.body.appendChild(link);
@@ -236,7 +258,7 @@
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         setIsProcessing(false);
-                    }, 1000);
+                    }, 2000); 
                 } catch (err) {
                     setIsProcessing(false);
                     window.open(selectedFortune.image, '_blank');
@@ -246,82 +268,140 @@
             const handleNativeShare = async () => {
                 if (!selectedFortune || isProcessing) return;
                 setIsProcessing(true);
+
                 try {
                     const file = await getImageFile();
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
                         await navigator.share({
-                            title: 'เซียมซี',
-                            text: 'Honda Maliwan',
+                            title: 'เซียมซีดิจิทัล Honda Maliwan',
+                            text: `ฉันได้เซียมซี "${selectedFortune.title}" เฮงมาก! 🎉`,
                             files: [file]
                         });
                         saveToGoogleSheets("แชร์ผ่าน Web Share", selectedFortune, aiAnalysis, branchRef.current);
                     } else {
-                        alert("เครื่องนี้ไม่รองรับการแชร์โดยตรง");
+                        alert("อุปกรณ์นี้ไม่รองรับการแชร์ไฟล์โดยตรง ระบบจะทำการดาวน์โหลดภาพให้แทนครับ");
+                        setIsProcessing(false); 
                         handleDownload();
                     }
                 } catch (err) {
-                    console.log("Share failed");
+                    console.log("Share cancelled or failed:", err);
                 } finally {
                     setIsProcessing(false);
                 }
             };
 
             return (
-                <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+                <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white relative overflow-hidden">
                     <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
                         <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
                     </div>
 
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
-                        
                         {step !== 'result' && (
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
                                 <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
-                                {debugFortuneId && <p className="text-yellow-400 text-xs mt-1 font-bold bg-yellow-500/20 inline-block px-2 rounded">Locked: {debugFortuneId}</p>}
+                                {debugFortuneId && (
+                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
+                                    </div>
+                                )}
                             </div>
                         )}
 
                         {step === 'branch' && (
-                            <div className="w-full flex-grow flex flex-col justify-center gap-3">
-                                <h2 className="text-xl text-center mb-2 font-bold">เลือกสาขาที่ท่านใช้บริการ</h2>
-                                {BRANCHES.map(branch => (
-                                    <button key={branch} onClick={() => handleBranchSelect(branch)} className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition font-bold text-lg active:scale-95">{branch}</button>
-                                ))}
+                            <div className="animate-fade-in w-full flex-grow flex flex-col justify-center">
+                                <h2 className="text-xl text-center mb-5 font-bold">เลือกสาขาที่ท่านใช้บริการ</h2>
+                                <div className="space-y-3">
+                                    {BRANCHES.map(branch => (
+                                        <button 
+                                            key={branch}
+                                            onClick={() => handleBranchSelect(branch)}
+                                            className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition duration-300 font-bold text-lg active:scale-95 touch-manipulation leading-tight"
+                                        >
+                                            {branch}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
                         {step === 'shake' && (
-                            <div className="flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
+                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
-                                    <img src="shake_item.png" className={`h-full w-auto max-w-full object-contain ${isShaking ? 'shake-animation' : ''}`} />
+                                    <img 
+                                        src="shake_item.png" 
+                                        alt="Shake Item" 
+                                        className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
+                                    />
                                 </div>
-                                <div className="flex-shrink-0 w-full flex flex-col items-center pb-4">
-                                    <p className="text-[3dvh] mb-4 font-bold text-yellow-100 text-center">ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า</p>
-                                    <button onClick={handleShake} disabled={isShaking} className="w-[80%] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg active:scale-95">{isShaking ? '...' : 'เขย่าเลย!'}</button>
+                                <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
+                                    <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
+                                        ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
+                                    </p>
+                                    <button 
+                                        onClick={handleShake}
+                                        disabled={isShaking}
+                                        className="w-[80%] max-w-[280px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                    >
+                                        {isShaking ? '...' : 'เขย่าเลย!'}
+                                    </button>
                                 </div>
                             </div>
                         )}
 
                         {step === 'result' && selectedFortune && (
-                            <div className="flex-grow flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
+                            <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
-                                     <img src={selectedFortune.image} className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500" />
+                                     <img 
+                                        src={selectedFortune.image} 
+                                        alt={selectedFortune.title} 
+                                        loading="eager"
+                                        decoding="sync"
+                                        fetchpriority="high"
+                                        className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
+                                    />
                                 </div>
+
                                 <div className="w-full flex-shrink-0">
-                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 text-center">
-                                        <p className="text-yellow-100 italic text-xs whitespace-pre-line">{isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : aiAnalysis}</p>
+                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
+                                        <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
+                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
+                                        </p>
                                     </div>
-                                    <div className="flex gap-2 w-full mb-0.5">
-                                        <button onClick={handleDownload} disabled={isProcessing} className="flex-1 flex justify-center items-center gap-1 bg-white/10 py-1.5 rounded-xl font-bold border border-white/30 text-xs">{isProcessing ? <Icons.Loader /> : <Icons.Download />} บันทึก</button>
-                                        <button onClick={handleNativeShare} disabled={isProcessing} className="flex-1 flex justify-center items-center gap-1 bg-yellow-500 text-red-900 py-1.5 rounded-xl font-bold text-xs">{isProcessing ? <Icons.Loader /> : <Icons.Share />} แชร์</button>
+
+                                    <div className="flex gap-2 w-full mb-0.5 relative z-10">
+                                        <button 
+                                            onClick={handleDownload}
+                                            disabled={isProcessing}
+                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
+                                        >
+                                            {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
+                                            {isProcessing ? '...' : 'บันทึกภาพ'}
+                                        </button>
+                                        <button 
+                                            onClick={handleNativeShare}
+                                            disabled={isProcessing}
+                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-1.5 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
+                                        >
+                                            {isProcessing ? <Icons.Loader /> : <Icons.Share />}
+                                            {isProcessing ? '...' : 'แชร์'}
+                                        </button>
                                     </div>
-                                    <button onClick={() => window.location.reload()} className="text-yellow-400 underline text-[10px] w-full py-1">สแกนใหม่อีกครั้ง</button>
+
+                                    <button 
+                                        onClick={() => window.location.reload()}
+                                        className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
+                                    >
+                                        สแกนใหม่อีกครั้ง
+                                    </button>
                                 </div>
                             </div>
                         )}
                     </div>
-                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 w-full pointer-events-none">© 2026 Honda Maliwan</div>
+                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
+                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
+                    </div>
                 </div>
             );
         };
