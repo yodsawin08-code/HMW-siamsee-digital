@@ -24,8 +24,8 @@
         })();
     </script>
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -47,7 +47,7 @@
 
     <script type="text/babel">
         // *** URL Backend ใหม่ ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
         const GEMINI_API_KEY = ""; 
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
@@ -88,21 +88,12 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15));
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
             const targetFortuneRef = useRef(null);
             const branchRef = useRef("");
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null);
-
-            useEffect(() => {
-                const params = new URLSearchParams(window.location.search);
-                const fortuneId = parseInt(params.get('fortune'));
-                if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
-                    targetFortuneRef.current = fortuneId;
-                    setDebugFortuneId(fortuneId);
-                }
-            }, []);
 
             // --- Auto Redirect (สำหรับ Online) ---
             useEffect(() => {
