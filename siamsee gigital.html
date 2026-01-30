@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
     <link rel="preload" as="image" href="logo.png" fetchpriority="high">
@@ -35,6 +35,17 @@
         body { font-family: 'Sarabun', sans-serif; overscroll-behavior: none; }
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        
+        /* Style สำหรับ Dropdown */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
     </style>
 </head>
 <body class="bg-red-950 text-white">
@@ -46,10 +57,19 @@
     </div>
 
     <script type="text/babel">
-        // *** URL Backend ใหม่ ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
+        // *** URL Backend ของ Honda Maliwan ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
         const GEMINI_API_KEY = ""; 
-        const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
+        
+        // *** ปรับลำดับสาขา: Online อยู่บนสุด ***
+        const BRANCHES = [ 
+            "Online", 
+            "สำนักงานใหญ่ (ขอนแก่น)", 
+            "สุรินทร์", 
+            "บุรีรัมย์", 
+            "นาคา (ภูเก็ต)", 
+            "เมืองกระบี่" 
+        ];
 
         const FORTUNES = [
             { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง', image: '1.png' },
@@ -80,7 +100,7 @@
         const { useState, useEffect, useRef } = React;
 
         const App = () => {
-            const [step, setStep] = useState('branch');
+            const [step, setStep] = useState('branch'); // เริ่มต้นที่หน้าเลือกสาขา
             const [selectedBranch, setSelectedBranch] = useState("");
             const [isShaking, setIsShaking] = useState(false);
             const [selectedFortune, setSelectedFortune] = useState(null);
@@ -88,14 +108,14 @@
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15));
             const targetFortuneRef = useRef(null);
             const branchRef = useRef("");
             const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
             const SHAKE_THRESHOLD = 15;
             const [debugFortuneId, setDebugFortuneId] = useState(null);
 
-            // --- Auto Redirect (สำหรับ Online) ---
+            // --- Auto Redirect ---
             useEffect(() => {
                 const isLine = /Line/i.test(navigator.userAgent);
                 if (isLine) {
@@ -104,6 +124,15 @@
                         currentUrl.searchParams.set('openExternalBrowser', '1');
                         window.location.replace(currentUrl.toString());
                     }
+                }
+            }, []);
+
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const fortuneId = parseInt(params.get('fortune'));
+                if (fortuneId && fortuneId >= 1 && fortuneId <= 9) {
+                    targetFortuneRef.current = fortuneId;
+                    setDebugFortuneId(fortuneId);
                 }
             }, []);
 
@@ -171,12 +200,24 @@
                 }
             };
 
-            const handleBranchSelect = async (branch) => {
+            // *** Logic การยืนยันสาขา (มีขออนุญาต iOS) ***
+            const handleBranchConfirm = async () => {
+                if (!selectedBranch) return;
+
+                // ขออนุญาต iOS Motion Sensor
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            alert('กรุณากดอนุญาตให้เข้าถึงการเคลื่อนไหวเพื่อเล่นเกม');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("iOS permission error:", e);
+                    }
                 }
-                setSelectedBranch(branch);
-                branchRef.current = branch;
+                
+                branchRef.current = selectedBranch;
                 setStep('shake');
             };
 
@@ -257,27 +298,42 @@
 
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
                         
-                        {step !== 'result' && (
-                            <div className="text-center mb-2 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
-                                <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
-                                {debugFortuneId && (
-                                    <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
-                                        <p className="text-yellow-400 text-xs font-bold">🎯 ท่านได้ใบเซียมซีที่ {debugFortuneId}</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
+                        {/* 1. หน้าเลือกสาขาแบบใหม่ (เหมือนตัวอย่าง) */}
                         {step === 'branch' && (
-                            <div className="w-full flex-grow flex flex-col justify-center gap-3">
-                                <h2 className="text-xl text-center mb-2 font-bold">เลือกสาขาที่ท่านใช้บริการ</h2>
-                                {BRANCHES.map(branch => (
-                                    <button key={branch} onClick={() => handleBranchSelect(branch)} className="w-full py-3 px-6 bg-white/10 hover:bg-yellow-500 hover:text-red-900 border border-yellow-500/30 rounded-2xl transition font-bold text-lg active:scale-95">{branch}</button>
-                                ))}
+                            <div className="w-full flex-grow flex flex-col justify-center items-center gap-6 animate-fade-in">
+                                <div className="text-center mb-4">
+                                    <img src="logo.png" alt="HONDA MALIWAN" className="h-20 mx-auto mb-4 drop-shadow-lg" />
+                                    <h2 className="text-2xl font-bold text-yellow-400 drop-shadow-md">
+                                        เลือกสาขาที่ท่านใช้บริการ
+                                    </h2>
+                                </div>
+
+                                <div className="w-full px-4">
+                                    <select
+                                        value={selectedBranch}
+                                        onChange={(e) => setSelectedBranch(e.target.value)}
+                                        className="w-full p-4 bg-white/90 border-2 border-yellow-500 rounded-2xl text-red-900 text-lg font-bold focus:outline-none focus:border-red-600 pl-4 pr-10 text-center shadow-lg truncate"
+                                    >
+                                        <option value="" disabled>-- กรุณาเลือก --</option>
+                                        {BRANCHES.map(branch => (
+                                            <option key={branch} value={branch}>
+                                                {branch}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <button
+                                    onClick={handleBranchConfirm}
+                                    disabled={!selectedBranch}
+                                    className={`w-[80%] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-2xl shadow-xl border-2 border-yellow-300 transition transform ${!selectedBranch ? 'opacity-70 cursor-not-allowed grayscale' : 'hover:scale-105 active:scale-95'}`}
+                                >
+                                    ยืนยัน
+                                </button>
                             </div>
                         )}
 
+                        {/* 2. หน้าเขย่า (Shake) */}
                         {step === 'shake' && (
                             <div className="flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
@@ -290,6 +346,7 @@
                             </div>
                         )}
 
+                        {/* 3. หน้าผลลัพธ์ (Result) */}
                         {step === 'result' && selectedFortune && (
                             <div className="flex-grow flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
                                 <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
@@ -308,7 +365,7 @@
                             </div>
                         )}
                     </div>
-                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 w-full pointer-events-none">© 2026 Honda Maliwan</div>
+                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 w-full pointer-events-none">© 2026 Honda Maliwan | Powered by Gemini & Google Sheets</div>
                 </div>
             );
         };
