@@ -18,14 +18,12 @@
     <link rel="preload" as="image" href="9.png" fetchpriority="high">
 
     <script>
-        // *** 2. บังคับโหลดเข้า RAM ทันที (ก่อน React เริ่มทำงาน) ***
         (function() {
+            // Force Load to RAM
             var images = ['logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
-            images.forEach(function(src) {
-                new Image().src = src;
-            });
+            images.forEach(function(src) { new Image().src = src; });
 
-            // Redirect Line Logic
+            // Auto Redirect
             var userAgent = navigator.userAgent || navigator.vendor || window.opera;
             var isLine = /Line/i.test(userAgent);
             if (isLine) {
@@ -55,7 +53,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
+        // *** อัปเดต URL ใหม่ตรงนี้ครับ ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5ceIJp59kiCD0flYiySSLwZe5lrJhWV9isxZlveZnhEihCM7aNltOomPmKc2W8ryq_w/exec"; 
         const GEMINI_API_KEY = ""; 
         
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
@@ -105,7 +104,6 @@
                 }
             }, []);
 
-            // Logic เขย่า + iOS
             useEffect(() => {
                 if (step !== 'shake' || isShaking) return;
                 const handleMotion = (event) => {
@@ -124,8 +122,18 @@
                 return () => window.removeEventListener('devicemotion', handleMotion);
             }, [step, isShaking]);
 
+            // --- คำนวณโปรโมชั่น ---
+            const getPromotionText = (id) => {
+                if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
+                if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
+                if (id === 9) return "รับส่วนลด 300 บาท บริการเคลือบสี";
+                return "-";
+            };
+
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
                 const branchToSend = branchName || branchRef.current || selectedBranch;
+                const promoText = fortune ? getPromotionText(fortune.id) : "-";
+
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -136,9 +144,10 @@
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
-                        action: actionType 
+                        action: actionType,
+                        promotion: promoText 
                     })
-                }).then(() => console.log(`Action saved: ${actionType} | AI: ${aiText}`));
+                }).then(() => console.log(`Action saved: ${actionType}`));
             };
 
             const fetchAiContent = async (fortune) => {
@@ -162,16 +171,14 @@
                     return resultText;
                 } catch (error) {
                     console.error("AI Error", error);
-                    const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
-                    setAiAnalysis(errorText);
-                    return errorText;
+                    setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
+                    return "Error API";
                 } finally {
                     setIsAnalyzing(false);
                 }
             };
 
             const handleBranchSelect = async (branch) => {
-                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try {
                         const permissionState = await DeviceMotionEvent.requestPermission();
@@ -402,6 +409,7 @@
                     </div>
                     
                     <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
+                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
                     </div>
                 </div>
             );
@@ -412,4 +420,3 @@
     </script>
 </body>
 </html>
-
