@@ -5,23 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Honda Maliwan Chinese New Year 2026</title>
     
-    <link rel="preload" as="image" href="logo.png" fetchpriority="high">
-    <link rel="preload" as="image" href="shake_item.png" fetchpriority="high">
-    <link rel="preload" as="image" href="1.png" fetchpriority="high">
-    <link rel="preload" as="image" href="2.png" fetchpriority="high">
-    <link rel="preload" as="image" href="3.png" fetchpriority="high">
-    <link rel="preload" as="image" href="4.png" fetchpriority="high">
-    <link rel="preload" as="image" href="5.png" fetchpriority="high">
-    <link rel="preload" as="image" href="6.png" fetchpriority="high">
-    <link rel="preload" as="image" href="7.png" fetchpriority="high">
-    <link rel="preload" as="image" href="8.png" fetchpriority="high">
-    <link rel="preload" as="image" href="9.png" fetchpriority="high">
-
     <script>
         (function() {
-            var isLine = /Line/i.test(navigator.userAgent);
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var isLine = /Line/i.test(userAgent);
+            
+            // ถ้าเป็น LINE ให้ดีดทันที!
             if (isLine) {
                 var url = new URL(window.location.href);
+                // เช็คว่ามีคำสั่งแล้วหรือยัง ป้องกัน Loop
                 if (!url.searchParams.has('openExternalBrowser')) {
                     url.searchParams.set('openExternalBrowser', '1');
                     window.location.replace(url.toString());
@@ -30,8 +22,8 @@
         })();
     </script>
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -43,44 +35,32 @@
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
     </style>
 </head>
-<body class="bg-red-950 text-white">
-    <div id="root" class="h-[100dvh] w-full flex items-center justify-center">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mx-auto mb-4"></div>
-            <p class="text-yellow-500">กำลังโหลด...</p>
-        </div>
-    </div>
+<body class="bg-red-950">
+    <div id="root"></div>
 
     <script type="text/babel">
-        // *** URL Backend ใหม่ ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
+        // --- URL Backend (ชีท Offline) ---
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-RvUzajF0Sa7_J2RxAydWPsd8J4hdjaMuhgO9mWRzcmk1sAFEYUtEqtfh2Km4qCGJng/exec"; 
         const GEMINI_API_KEY = ""; 
+        
         const BRANCHES = [ "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่", "Online" ];
 
         const FORTUNES = [
-            { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง', image: '1.png' },
-            { id: 2, title: 'ความสำเร็จเกิดจากมิตรสหาย', detail: 'การเจรจาราบรื่น', image: '2.png' },
-            { id: 3, title: 'เป็นปีแห่งการก้าวกระโดด', detail: 'อย่ากลัวที่จะเปลี่ยนแปลง', image: '3.png' },
-            { id: 4, title: 'ปัญญาคือทรัพย์', detail: 'สติจะพาให้พ้นอุปสรรค', image: '4.png' },
-            { id: 5, title: 'ชีวิตสมดุลคือลาภอันประเสริฐ', detail: 'การงานเด่น ความรักดี', image: '5.png' },
-            { id: 6, title: 'โชคลาภหลั่งไหลมาดั่งสายน้ำ', detail: 'มีกินมีใช้ไม่ขาดมือ', image: '6.png' },
-            { id: 7, title: 'ชื่อเสียงจะปรากฏเด่นชัด', detail: 'ความดีที่ทำมาจะส่งผล', image: '7.png' },
-            { id: 8, title: 'เลขแปดนำพาโชคไม่สิ้นสุด', detail: 'โอกาสใหม่จะวิ่งเข้าหา', image: '8.png' },
-            { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง', image: '9.png' }
+            { id: 1, title: 'เริ่มต้นปีด้วยแสงสว่าง', detail: 'สิ่งที่คิดจะกลายเป็นจริง ประดุจอาทิตย์อุทัย ไร้เมฆหมอกบัง', image: '1.png' },
+            { id: 2, title: 'ความสำเร็จเกิดจากมิตรสหายและคู่ครอง', detail: 'การเจรจาราบรื่น จะมีคนคอยเกื้อหนุนให้ถึงฝั่งฝัน', image: '2.png' },
+            { id: 3, title: 'เป็นปีแห่งการก้าวกระโดด', detail: 'อย่ากลัวที่จะเปลี่ยนแปลง การขยับขยายจะนำมาซึ่งโชคลาภมหาศาล', image: '3.png' },
+            { id: 4, title: 'ปัญญาคือทรัพย์', detail: 'สติจะพาให้พ้นอุปสรรค การลงทุนในความรู้จะออกดอกผลเป็นเงินทอง', image: '4.png' },
+            { id: 5, title: 'ชีวิตสมดุลคือลาภอันประเสริฐ', detail: 'การงานเด่น ความรักดี สุขภาพกายใจแข็งแกร่งดั่งภูผา', image: '5.png' },
+            { id: 6, title: 'โชคลาภหลั่งไหลมาดั่งสายน้ำ', detail: 'มีกินมีใช้ไม่ขาดมือ สิ่งที่เคยติดขัดจะคลี่คลายในเร็ววัน', image: '6.png' },
+            { id: 7, title: 'ชื่อเสียงจะปรากฏเด่นชัด', detail: 'ความดีที่ทำมาจะส่งผลให้ผู้คนยอมรับและสรรเสริญ', image: '7.png' },
+            { id: 8, title: 'เลขแปดนำพาโชคไม่สิ้นสุด', detail: 'โอกาสใหม่จะวิ่งเข้าหา การเดินทางไกลจะนำมาซึ่งความสำเร็จ', image: '8.png' },
+            { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง ประสบความสำเร็จอย่างมั่นคงและยั่งยืน', image: '9.png' }
         ];
 
-        // --- คำนวณโปรโมชั่น ---
-        const getPromotionText = (id) => {
-            if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
-            if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
-            if (id === 9) return "รับส่วนลด 300 บาท บริการเคลือบสี";
-            return "-";
-        };
-
         const Icons = {
-            Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
-            Share: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
-            Loader: () => <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            Download: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+            Share: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+            Loader: () => <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
         };
 
         const { useState, useEffect, useRef } = React;
@@ -88,19 +68,19 @@
         const App = () => {
             const [step, setStep] = useState('branch'); 
             const [selectedBranch, setSelectedBranch] = useState("");
-            const [isShaking, setIsShaking] = useState(false);
             const [selectedFortune, setSelectedFortune] = useState(null);
             const [aiAnalysis, setAiAnalysis] = useState("");
             const [isAnalyzing, setIsAnalyzing] = useState(false);
             const [isProcessing, setIsProcessing] = useState(false);
+            const [isShaking, setIsShaking] = useState(false);
             
-            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+            // ใช้ Ref ล็อคค่าเพื่อความแม่นยำสูงสุด
             const targetFortuneRef = useRef(null); 
             const branchRef = useRef(""); 
-            const accelerationRef = useRef({ x: 0, y: 0, z: 0 });
-            const SHAKE_THRESHOLD = 15;
+            const sessionId = useRef(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
             const [debugFortuneId, setDebugFortuneId] = useState(null); 
 
+            // อ่านค่าเลขจาก URL ทันทีที่ App เริ่มทำงาน
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const fortuneId = parseInt(params.get('fortune'));
@@ -110,41 +90,8 @@
                 }
             }, []);
 
-            // --- 1. Preload Images ---
-            useEffect(() => {
-                const imagesToPreload = [
-                    'logo.png', 'shake_item.png',
-                    '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'
-                ];
-                imagesToPreload.forEach(src => {
-                    const img = new Image();
-                    img.src = src;
-                });
-            }, []);
-
-            // --- Logic เขย่า (iOS Compatible) ---
-            useEffect(() => {
-                if (step !== 'shake' || isShaking) return;
-                const handleMotion = (event) => {
-                    if (!event.accelerationIncludingGravity) return;
-                    const { x, y, z } = event.accelerationIncludingGravity;
-                    const acc = accelerationRef.current;
-                    const deltaX = Math.abs(x - acc.x);
-                    const deltaY = Math.abs(y - acc.y);
-                    const deltaZ = Math.abs(z - acc.z);
-                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
-                        handleShake();
-                    }
-                    accelerationRef.current = { x, y, z };
-                };
-                window.addEventListener('devicemotion', handleMotion);
-                return () => window.removeEventListener('devicemotion', handleMotion);
-            }, [step, isShaking]);
-
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
                 const branchToSend = branchName || branchRef.current || selectedBranch;
-                const promoText = fortune ? getPromotionText(fortune.id) : "-";
-
                 fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -155,17 +102,15 @@
                         branch: branchToSend,
                         fortuneTitle: fortune ? `ใบที่ ${fortune.id}: ${fortune.title}` : "-",
                         aiBlessing: aiText || "-",
-                        action: actionType,
-                        promotion: promoText 
+                        action: actionType 
                     })
-                }).then(() => console.log(`Action saved: ${actionType}`));
+                }).then(() => console.log(`Action saved: ${actionType} | AI: ${aiText}`));
             };
 
             const fetchAiContent = async (fortune) => {
                 if (!GEMINI_API_KEY) {
-                    const defaultMsg = "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี\n(จาก Honda Maliwan)";
-                    setAiAnalysis(defaultMsg);
-                    return defaultMsg;
+                    setAiAnalysis("ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)");
+                    return "ขอให้ท่านเฮงๆ รวยๆ สุขภาพแข็งแรงตลอดปี (จาก Honda Maliwan)"; // ส่งค่ากลับไปใช้
                 }
                 
                 setIsAnalyzing(true);
@@ -179,19 +124,18 @@
                     const data = await response.json();
                     const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "เฮงๆ รวยๆ";
                     setAiAnalysis(resultText);
-                    return resultText;
+                    return resultText; // ส่งค่ากลับไปใช้
                 } catch (error) {
-                    setAiAnalysis("ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง");
-                    return "Error API";
+                    console.error("AI Error", error);
+                    const errorText = "ดวงดีมีชัย ไปไหนปลอดภัยตลอดเส้นทาง";
+                    setAiAnalysis(errorText);
+                    return errorText;
                 } finally {
                     setIsAnalyzing(false);
                 }
             };
 
             const handleBranchSelect = async (branch) => {
-                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
-                }
                 setSelectedBranch(branch);
                 branchRef.current = branch; 
                 
@@ -207,34 +151,41 @@
                 if (fortuneToShow) {
                     setSelectedFortune(fortuneToShow);
                     setStep('result');
+                    
+                    // 1. บันทึกครั้งแรก: รอ AI...
                     saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, "รอ AI...", branch);
+                    
+                    // 2. รอ AI คิดเสร็จ
                     const aiResult = await fetchAiContent(fortuneToShow);
+
+                    // 3. บันทึกครั้งที่สอง: ส่งผล AI กลับไปอัปเดต!
                     if (aiResult) {
                          saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", fortuneToShow, aiResult, branch);
                     }
-                } else {
-                    setStep('shake');
                 }
             };
 
             const handleShake = () => {
-                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                        DeviceMotionEvent.requestPermission().catch(console.error);
-                }
                 setIsShaking(true);
-                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 setTimeout(async () => {
                     setIsShaking(false);
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
+                    
+                    // บันทึกครั้งแรก
+                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, "รอ AI...", branchRef.current);
+                    
+                    // รอ AI และบันทึกซ้ำ
                     const aiResult = await fetchAiContent(randomFortune);
-                    saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult);
+                    if (aiResult) {
+                         saveToGoogleSheets("AI วิเคราะห์เสร็จสิ้น", randomFortune, aiResult, branchRef.current);
+                    }
                 }, 2000);
             };
 
             const getImageFile = async () => {
-                const response = await fetch(selectedFortune.image);
+                const response = await fetch(selectedFortune.image + '?t=' + new Date().getTime());
                 if (!response.ok) throw new Error("Image not found");
                 const blob = await response.blob();
                 return new File([blob], `HondaMaliwan_Fortune_${selectedFortune.id}.png`, { type: 'image/png' });
@@ -253,13 +204,16 @@
                     link.download = file.name;
                     document.body.appendChild(link);
                     link.click();
+                    
                     saveToGoogleSheets("ดาวน์โหลดภาพ", selectedFortune, aiAnalysis, branchRef.current);
+                    
                     setTimeout(() => {
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(url);
                         setIsProcessing(false);
                     }, 2000); 
                 } catch (err) {
+                    console.error("Download failed:", err);
                     setIsProcessing(false);
                     window.open(selectedFortune.image, '_blank');
                 }
@@ -292,14 +246,16 @@
 
             return (
                 <div className="h-[100dvh] w-full flex flex-col items-center justify-center p-2 sm:p-4 text-white relative overflow-hidden">
+                    
                     <div className="absolute inset-0 opacity-10 pointer-events-none flex justify-center items-center">
                         <span className="text-[20vh] font-bold text-yellow-500 rotate-90 md:rotate-0">HONDA</span>
                     </div>
 
                     <div className="z-10 w-full max-w-lg bg-red-900/80 backdrop-blur-md p-4 pt-6 pb-2 rounded-3xl border border-yellow-500 shadow-2xl flex flex-col justify-between h-full max-h-[98dvh]">
+                        
                         {step !== 'result' && (
                             <div className="text-center mb-2 animate-fade-in flex-shrink-0">
-                                <img src="logo.png" alt="HONDA MALIWAN" className="h-16 mx-auto mb-2 drop-shadow-lg" />
+                                <img src="logo.png" alt="HONDA MALIWAN" className="h-20 mx-auto mb-2 drop-shadow-lg" />
                                 <p className="text-red-200 text-lg leading-tight">Siamsee Dragon 2026</p>
                                 {debugFortuneId && (
                                     <div className="mt-1 inline-block bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
@@ -327,22 +283,26 @@
                         )}
 
                         {step === 'shake' && (
-                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2 overflow-hidden">
+                            // ใช้ flex-grow เพื่อยึดพื้นที่ว่าง และ justify-between เพื่อกระจาย
+                            <div className="text-center flex-grow flex flex-col items-center justify-between py-2">
+                                {/* Wrapper สำหรับรูปภาพ ให้ขยายเต็มที่ (flex-1) และซ่อนส่วนเกิน (overflow-hidden) */}
                                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden relative my-2">
+                                    {/* รูปภาพ: ให้สูงเต็ม parent (h-full) แต่ไม่เกินขอบ (object-contain) */}
                                     <img 
                                         src="shake_item.png" 
                                         alt="Shake Item" 
                                         className={`h-full w-auto max-w-full object-contain relative z-20 ${isShaking ? 'shake-animation' : ''}`} 
                                     />
                                 </div>
-                                <div className="flex-shrink-0 w-full flex flex-col items-center justify-end pb-4">
-                                    <p className="text-[3dvh] mb-4 font-bold leading-normal text-yellow-100">
+
+                                <div className="flex-shrink-0 w-full">
+                                    <p className="text-[3dvh] font-bold leading-tight text-yellow-100 mb-4">
                                         ตั้งจิตอธิษฐาน...<br/>แล้วกดเขย่า
                                     </p>
                                     <button 
                                         onClick={handleShake}
                                         disabled={isShaking}
-                                        className="w-[80%] max-w-[280px] py-4 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
+                                        className="w-[80%] max-w-[300px] py-3 bg-yellow-500 text-red-900 font-bold rounded-full text-[2.5dvh] shadow-lg hover:scale-105 transition transform active:scale-95 touch-manipulation"
                                     >
                                         {isShaking ? '...' : 'เขย่าเลย!'}
                                     </button>
@@ -351,30 +311,30 @@
                         )}
 
                         {step === 'result' && selectedFortune && (
-                            <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-1 overflow-hidden">
-                                <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden min-h-0 mt-0 mb-1">
+                            <div className="text-center animate-fade-in w-full flex flex-col items-center justify-between h-full pb-2">
+                                {/* Logo is hidden here because step === 'result' */}
+                                
+                                <div className="relative w-full flex-1 flex items-center justify-center overflow-hidden my-2">
                                      <img 
                                         src={selectedFortune.image} 
                                         alt={selectedFortune.title} 
-                                        loading="eager"
-                                        decoding="sync"
-                                        fetchpriority="high"
                                         className="h-full w-auto max-w-full object-contain rounded-2xl shadow-2xl border-2 border-yellow-500 relative z-20"
                                     />
                                 </div>
 
                                 <div className="w-full flex-shrink-0">
-                                    <div className="bg-yellow-500/10 p-1.5 rounded-lg border border-yellow-500/30 mb-1.5 w-full relative z-10 text-center">
-                                        <p className="text-yellow-100 italic text-xs leading-tight whitespace-pre-line">
-                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `${aiAnalysis}`}
+                                    <div className="bg-yellow-500/20 p-3 rounded-xl border border-yellow-500/50 mb-3 w-full relative z-10">
+                                        <h4 className="text-yellow-400 text-sm font-bold mb-1 leading-tight">✨ พรพิเศษจากมังกรทอง</h4>
+                                        <p className="text-white italic text-sm leading-tight">
+                                            {isAnalyzing ? "กำลังวิเคราะห์ดวงชะตา..." : `"${aiAnalysis}"`}
                                         </p>
                                     </div>
 
-                                    <div className="flex gap-2 w-full mb-0.5 relative z-10">
+                                    <div className="flex gap-2 w-full mb-2 relative z-10">
                                         <button 
                                             onClick={handleDownload}
                                             disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-white/10 hover:bg-white/20 py-1.5 rounded-xl font-bold border border-white/30 transition active:scale-95 text-xs"
+                                            className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 py-3 rounded-xl font-bold border border-white/30 transition active:scale-95 text-sm"
                                         >
                                             {isProcessing ? <Icons.Loader /> : <Icons.Download />} 
                                             {isProcessing ? '...' : 'บันทึกภาพ'}
@@ -382,7 +342,7 @@
                                         <button 
                                             onClick={handleNativeShare}
                                             disabled={isProcessing}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-1.5 rounded-xl font-bold shadow-lg transition active:scale-95 text-xs"
+                                            className="flex-1 flex items-center justify-center gap-2 bg-yellow-500 text-red-900 hover:bg-yellow-400 py-3 rounded-xl font-bold shadow-lg transition active:scale-95 text-sm"
                                         >
                                             {isProcessing ? <Icons.Loader /> : <Icons.Share />}
                                             {isProcessing ? '...' : 'แชร์'}
@@ -391,7 +351,7 @@
 
                                     <button 
                                         onClick={() => window.location.reload()}
-                                        className="text-yellow-400 underline hover:text-white text-[10px] py-0.5 relative z-10"
+                                        className="text-yellow-400 underline hover:text-white text-xs py-1 relative z-10"
                                     >
                                         สแกนใหม่อีกครั้ง
                                     </button>
@@ -399,7 +359,8 @@
                             </div>
                         )}
                     </div>
-                    <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
+                    
+                    <div className="mt-2 text-xs text-red-400/60 text-center absolute bottom-1 pointer-events-none">
                         © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
                     </div>
                 </div>
