@@ -20,6 +20,7 @@
     
     <script>
         (function() {
+            // โหลดรูปรอไว้ใน RAM
             var images = ['Pok.webp', 'logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
             images.forEach(function(src) { new Image().src = src; });
         })();
@@ -37,6 +38,7 @@
         .shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
         @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
         
+        /* CSS สำหรับ Dropdown (ลูกศรสีเหลือง) */
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -47,6 +49,7 @@
             background-size: 1em;
         }
 
+        /* ขอบตัวหนังสือสีดำ */
         .text-outline-black {
             text-shadow: 
                 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
@@ -57,10 +60,11 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // *** URL Backend ล่าสุด ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
+        // *** URL Backend ของ Honda Maliwan ***
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
         const GEMINI_API_KEY = ""; 
         
+        // *** สาขา Honda Maliwan (Online ขึ้นก่อน) ***
         const BRANCHES = [ "Online", "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
 
         const FORTUNES = [
@@ -163,13 +167,21 @@
                 }
             };
 
-            // *** Logic ปุ่มยืนยัน (Online): ส่งครั้งเดียว ***
+            // *** Logic ปุ่มยืนยัน (แบบใหม่) ***
             const handleBranchConfirm = async () => {
-                if (!selectedBranch) return; 
+                if (!selectedBranch) return; // ต้องเลือกสาขาก่อน
 
                 // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try { await DeviceMotionEvent.requestPermission(); } catch (e) {}
+                    try {
+                        const permissionState = await DeviceMotionEvent.requestPermission();
+                        if (permissionState !== 'granted') {
+                            alert('กรุณากดอนุญาตให้เข้าถึงการเคลื่อนไหวเพื่อเล่นเกม');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("iOS permission error:", e);
+                    }
                 }
                 
                 branchRef.current = selectedBranch;
@@ -182,7 +194,7 @@
                         setSelectedFortune(fortuneToShow);
                         setStep('result');
                         
-                        // *** แก้ไข: รอ AI เสร็จก่อนค่อยส่งทีเดียว ***
+                        // รอ AI เสร็จก่อนค่อยส่งทีเดียว
                         const aiResult = await fetchAiContent(fortuneToShow);
                         saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, aiResult, selectedBranch);
                     }
@@ -191,7 +203,7 @@
                 }
             };
 
-            // *** Logic เขย่า (Online): ส่งครั้งเดียว ***
+            // *** Logic เขย่า ***
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
@@ -204,11 +216,29 @@
                     setSelectedFortune(randomFortune);
                     setStep('result');
                     
-                    // *** แก้ไข: รอ AI เสร็จก่อนค่อยส่งทีเดียว ***
                     const aiResult = await fetchAiContent(randomFortune);
                     saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult, branchRef.current);
                 }, 2000);
             };
+
+            // Motion Sensor Logic
+            useEffect(() => {
+                if (step !== 'shake' || isShaking) return;
+                const handleMotion = (event) => {
+                    if (!event.accelerationIncludingGravity) return;
+                    const { x, y, z } = event.accelerationIncludingGravity;
+                    const acc = accelerationRef.current;
+                    const deltaX = Math.abs(x - acc.x);
+                    const deltaY = Math.abs(y - acc.y);
+                    const deltaZ = Math.abs(z - acc.z);
+                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
+                        handleShake();
+                    }
+                    accelerationRef.current = { x, y, z };
+                };
+                window.addEventListener('devicemotion', handleMotion);
+                return () => window.removeEventListener('devicemotion', handleMotion);
+            }, [step, isShaking]);
 
             const getImageFile = async () => {
                 const response = await fetch(selectedFortune.image);
@@ -394,7 +424,7 @@
                     </div>
                     
                     <div className="mt-1 text-[10px] text-red-400/60 text-center absolute bottom-0.5 pointer-events-none w-full">
-                        © 2026 Honda Maliwan 
+                        © 2026 Honda Maliwan | Powered by Gemini & Google Sheets
                     </div>
                 </div>
             );
