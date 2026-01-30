@@ -17,13 +17,17 @@
     <link rel="preload" as="image" href="7.png" fetchpriority="high">
     <link rel="preload" as="image" href="8.png" fetchpriority="high">
     <link rel="preload" as="image" href="9.png" fetchpriority="high">
-    
+
     <script>
         (function() {
+            // โหลดรูป
             var images = ['Pok.webp', 'logo.png', 'shake_item.png', '1.png', '2.png', '3.png', '4.png', '5.png', '6.png', '7.png', '8.png', '9.png'];
             images.forEach(function(src) { new Image().src = src; });
 
-            var isLine = /Line/i.test(navigator.userAgent);
+            // เช็ค LINE
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var isLine = /Line/i.test(userAgent);
+            
             if (isLine) {
                 var url = new URL(window.location.href);
                 if (!url.searchParams.has('openExternalBrowser')) {
@@ -57,8 +61,7 @@
         }
 
         .text-outline-black {
-            text-shadow: 
-                2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+            text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
         }
     </style>
 </head>
@@ -71,11 +74,10 @@
     </div>
 
     <script type="text/babel">
-        // *** URL Backend ของ Honda Maliwan ***
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz-Yn-qC5I_Y_4aubjtmy0yvySQsfctagXM0rcTxLARljetSaxv8p6g5kP4wwTe8ed1TQ/exec"; 
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFjKy_w6MCcBbfz9ZE5VCDJGLvnkIyJ5UibQTyEBDqqb6p8fTLZjvKoPqUOVgIjPhQ8w/exec"; 
         const GEMINI_API_KEY = ""; 
         
-        // *** สาขา Honda Maliwan (Online ขึ้นก่อน) ***
+        // Online ขึ้นก่อน
         const BRANCHES = [ "Online", "สำนักงานใหญ่ (ขอนแก่น)", "สุรินทร์", "บุรีรัมย์", "นาคา (ภูเก็ต)", "เมืองกระบี่" ];
 
         const FORTUNES = [
@@ -90,7 +92,6 @@
             { id: 9, title: 'ถึงจุดสูงสุดของความสมปรารถนา', detail: 'ทุกอย่างเข้าที่เข้าทาง', image: '9.png' }
         ];
 
-        // --- คำนวณโปรโมชั่น (Honda Context) ---
         const getPromotionText = (id) => {
             if (id === 1) return "รับส่วนลด 500 บาท ฟลัชชิ่งแอร์ top up จากส่วนลดแคมเปญหลัก";
             if (id === 5) return "รับส่วนลด 300 บาท บริการล้างหัวฉีด";
@@ -131,7 +132,24 @@
                 }
             }, []);
 
-            // --- Save Function ---
+            useEffect(() => {
+                if (step !== 'shake' || isShaking) return;
+                const handleMotion = (event) => {
+                    if (!event.accelerationIncludingGravity) return;
+                    const { x, y, z } = event.accelerationIncludingGravity;
+                    const acc = accelerationRef.current;
+                    const deltaX = Math.abs(x - acc.x);
+                    const deltaY = Math.abs(y - acc.y);
+                    const deltaZ = Math.abs(z - acc.z);
+                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
+                        handleShake();
+                    }
+                    accelerationRef.current = { x, y, z };
+                };
+                window.addEventListener('devicemotion', handleMotion);
+                return () => window.removeEventListener('devicemotion', handleMotion);
+            }, [step, isShaking]);
+
             const saveToGoogleSheets = (actionType, fortune, aiText, branchName = null) => {
                 const branchToSend = branchName || branchRef.current || selectedBranch;
                 const promoText = fortune ? getPromotionText(fortune.id) : "-";
@@ -178,11 +196,9 @@
                 }
             };
 
-            // *** Logic ปุ่มยืนยัน (แบบใหม่) ***
             const handleBranchConfirm = async () => {
-                if (!selectedBranch) return; // ต้องเลือกสาขาก่อน
+                if (!selectedBranch) return;
 
-                // ขออนุญาต iOS
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     try {
                         const permissionState = await DeviceMotionEvent.requestPermission();
@@ -197,15 +213,12 @@
                 
                 branchRef.current = selectedBranch;
                 
-                // ตรวจสอบเลขล็อค
                 const lockedFortuneId = targetFortuneRef.current;
                 if (lockedFortuneId) {
                     const fortuneToShow = FORTUNES.find(f => f.id === lockedFortuneId);
                     if (fortuneToShow) {
                         setSelectedFortune(fortuneToShow);
                         setStep('result');
-                        
-                        // รอ AI เสร็จก่อนค่อยส่งทีเดียว
                         const aiResult = await fetchAiContent(fortuneToShow);
                         saveToGoogleSheets("สแกน QR ดูคำทำนาย", fortuneToShow, aiResult, selectedBranch);
                     }
@@ -214,7 +227,6 @@
                 }
             };
 
-            // *** Logic เขย่า ***
             const handleShake = () => {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                         DeviceMotionEvent.requestPermission().catch(console.error);
@@ -226,30 +238,10 @@
                     const randomFortune = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
                     setSelectedFortune(randomFortune);
                     setStep('result');
-                    
                     const aiResult = await fetchAiContent(randomFortune);
                     saveToGoogleSheets("สุ่มคำทำนาย", randomFortune, aiResult, branchRef.current);
                 }, 2000);
             };
-
-            // Motion Sensor Logic
-            useEffect(() => {
-                if (step !== 'shake' || isShaking) return;
-                const handleMotion = (event) => {
-                    if (!event.accelerationIncludingGravity) return;
-                    const { x, y, z } = event.accelerationIncludingGravity;
-                    const acc = accelerationRef.current;
-                    const deltaX = Math.abs(x - acc.x);
-                    const deltaY = Math.abs(y - acc.y);
-                    const deltaZ = Math.abs(z - acc.z);
-                    if (deltaX > SHAKE_THRESHOLD || deltaY > SHAKE_THRESHOLD || deltaZ > SHAKE_THRESHOLD) {
-                        handleShake();
-                    }
-                    accelerationRef.current = { x, y, z };
-                };
-                window.addEventListener('devicemotion', handleMotion);
-                return () => window.removeEventListener('devicemotion', handleMotion);
-            }, [step, isShaking]);
 
             const getImageFile = async () => {
                 const response = await fetch(selectedFortune.image);
